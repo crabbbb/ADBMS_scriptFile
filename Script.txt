@@ -2810,7 +2810,7 @@ INSERT INTO FlightSchedule (FlightScheduleID, AdultPrice, ChildPrice, AirplaneID
 INSERT INTO FlightSchedule (FlightScheduleID, AdultPrice, ChildPrice, AirplaneID) VALUES ('FS' || TO_CHAR(flightSchedule_seq.nextval, 'FM0000'), '101.15', '72.17', 'AIR009');
 INSERT INTO FlightSchedule (FlightScheduleID, AdultPrice, ChildPrice, AirplaneID) VALUES ('FS' || TO_CHAR(flightSchedule_seq.nextval, 'FM0000'), '101.15', '72.17', 'AIR009');
 INSERT INTO FlightSchedule (FlightScheduleID, AdultPrice, ChildPrice, AirplaneID) VALUES ('FS' || TO_CHAR(flightSchedule_seq.nextval, 'FM0000'), '101.15', '72.17', 'AIR009');
-INSERT INTO FlightSchedule (FlightScheduleID, AdultPrice, ChildPrice, AirplaneID) VALUES ('FS' || TO_CHAR(flightSchedule_seq.nextval, 'FM0000'), '101.15', '72.17', 'AIR009');
+
 
 -- AirplaneDisposal
 INSERT INTO AirplaneDisposal (DisposalID, DisposalDate, DisposalReason, DisposalMethod, DisposalPrice, AirplaneID) VALUES ('AD' || TO_CHAR(airplaneDisposal_seq.nextval, 'FM0000'), '6/9/2023', NULL, 'Scrapped', '2349', 'AIR160');
