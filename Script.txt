@@ -570,7 +570,7 @@ BEGIN
 
 	v_refundID := 'RF' || v_bookingID;
 	v_refundDate := SYSDATE;
-	v_refundAmount := v_paymentAmount;
+	v_refundAmount := v_paymentAmount * 0.5;
 
 	INSERT INTO Refund (RefundID, RefundDate, RefundAmount, CancellationID) VALUES (v_refundID, v_refundDate, v_refundAmount, :NEW.CancellationID);
 END;
