@@ -547,6 +547,7 @@ BEGIN
 END;
 /
 
+
 -- Refund
 CREATE OR REPLACE TRIGGER trg_new_refund
 AFTER INSERT ON Cancellation
@@ -555,6 +556,7 @@ FOR EACH ROW
 DECLARE
 	v_cancellationID	Cancellation.CancellationID%TYPE;
 	v_bookingID		Cancellation.BookingID%TYPE;
+	v_departDate		Booking.DepartDate%TYPE;
 	v_paymentAmount		Payment.PaymentAmount%TYPE;
 	v_refundID		Refund.RefundID%TYPE;
 	v_refundDate		Refund.RefundDate%TYPE;
@@ -564,17 +566,23 @@ BEGIN
 	v_cancellationID := :NEW.CancellationID;
 	v_bookingID := :NEW.BookingID;
 
-	SELECT PaymentAmount INTO v_paymentAmount
-	FROM Payment
-	WHERE BookingID = v_bookingID;
+	SELECT B.DepartDate, P.PaymentAmount INTO v_departDate, v_paymentAmount
+	FROM Booking B, Payment P
+	WHERE B.BookingID = P.BookingID AND B.BookingID = v_bookingID;
 
 	v_refundID := 'RF' || v_bookingID;
 	v_refundDate := SYSDATE;
-	v_refundAmount := v_paymentAmount * 0.5;
+
+	IF (TRUNC(v_departDate) - TRUNC(SYSDATE) > 10) THEN
+		v_refundAmount := v_paymentAmount * 0.5;
+	ELSE
+		v_refundAmount := v_paymentAmount * 0.25;
+	END IF;
 
 	INSERT INTO Refund (RefundID, RefundDate, RefundAmount, CancellationID) VALUES (v_refundID, v_refundDate, v_refundAmount, :NEW.CancellationID);
 END;
 /
+
 
 
 -- Cancellation
