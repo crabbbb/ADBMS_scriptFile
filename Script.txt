@@ -554,8 +554,6 @@ AFTER INSERT ON Cancellation
 FOR EACH ROW
 
 DECLARE
-	v_cancellationID	Cancellation.CancellationID%TYPE;
-	v_bookingID		Cancellation.BookingID%TYPE;
 	v_departDate		Booking.DepartDate%TYPE;
 	v_paymentAmount		Payment.PaymentAmount%TYPE;
 	v_refundID		Refund.RefundID%TYPE;
@@ -563,14 +561,15 @@ DECLARE
 	v_refundAmount		Refund.RefundAmount%TYPE;
 
 BEGIN
-	v_cancellationID := :NEW.CancellationID;
-	v_bookingID := :NEW.BookingID;
+	UPDATE Booking
+	SET BookingStatus = 'Cancelled'
+	WHERE BookingID = :NEW.BookingID;
 
 	SELECT B.DepartDate, P.PaymentAmount INTO v_departDate, v_paymentAmount
 	FROM Booking B, Payment P
-	WHERE B.BookingID = P.BookingID AND B.BookingID = v_bookingID;
+	WHERE B.BookingID = P.BookingID AND B.BookingID = :NEW.BookingID;
 
-	v_refundID := 'RF' || v_bookingID;
+	v_refundID := 'RF' || :NEW.BookingID;
 	v_refundDate := SYSDATE;
 
 	IF (TRUNC(v_departDate) - TRUNC(SYSDATE) > 10) THEN
@@ -582,7 +581,6 @@ BEGIN
 	INSERT INTO Refund (RefundID, RefundDate, RefundAmount, CancellationID) VALUES (v_refundID, v_refundDate, v_refundAmount, :NEW.CancellationID);
 END;
 /
-
 
 
 -- Cancellation
@@ -601,10 +599,6 @@ BEGIN
 	IF (TRUNC(v_departDate) - TRUNC(SYSDATE) > 3) THEN
 		:NEW.CancellationID := 'CL' || :NEW.BookingID;
 		:NEW.CancellationDate := SYSDATE;
-
-		UPDATE Booking
-		SET BookingStatus = 'Cancelled'
-		WHERE BookingID = :NEW.BookingID;
 	ELSE
 		RAISE_APPLICATION_ERROR(-20000, 'Cancellation is not allowed to be made 3 days before the departure date.');
 	END IF;
