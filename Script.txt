@@ -608,147 +608,7 @@ END;
 
 ----- Fung Qi -----
 
--- Maintenance (Insert)
-CREATE OR REPLACE TRIGGER trg_track_maintenance
-BEFORE INSERT OR UPDATE ON AirplaneMaintenance
-FOR EACH ROW
 
-DECLARE
-
-v_maintenanceEndDateTime TIMESTAMP;
-v_currentDateTime TIMESTAMP;
-v_duration INTERVAL DAY TO SECOND;
-
-BEGIN
-
-  v_currentDateTime := SYSTIMESTAMP;
-  v_maintenanceEndDateTime := :NEW.MaintenanceDateTime + (:NEW.HoursWork/24);
-
-  CASE
-  WHEN INSERTING THEN
-    IF (:NEW.MaintenanceDateTime < v_currentDateTime AND v_maintenanceEndDateTime > v_currentDateTime) THEN
-      :NEW.MaintenanceStatus := 'On-going';
-
-    ELSIF (v_maintenanceEndDateTime < v_currentDateTime) THEN
-      :NEW.MaintenanceStatus := 'Completed';
-
-    ELSIF (:NEW.MaintenanceDateTime > v_currentDateTime) THEN
-      :NEW.MaintenanceStatus := 'Scheduled';
-
-    END IF;
-
-  WHEN UPDATING THEN
-    IF (:NEW.MaintenanceStatus = 'Completed') THEN
-      IF (:NEW.MaintenanceDateTime < v_currentDateTime AND v_maintenanceEndDateTime > v_currentDateTime) THEN
-        v_duration := v_currentDateTime - :NEW.MaintenanceDateTime;
-        :NEW.HoursWork := CEIL(EXTRACT(HOUR FROM v_duration) + EXTRACT(MINUTE FROM v_duration) / 60);
-
-      ELSIF (v_maintenanceEndDateTime < v_currentDateTime) THEN
-        v_duration := v_currentDateTime - :NEW.MaintenanceDateTime;
-        :NEW.HoursWork := CEIL(EXTRACT(HOUR FROM v_duration) + EXTRACT(MINUTE FROM v_duration) / 60);
-
-      ELSIF (:NEW.MaintenanceDateTime > v_currentDateTime) THEN
-        RAISE_APPLICATION_ERROR (-20000, 'The maintenance (' || :NEW.MaintenanceID || ') was scheduled on ' || :NEW.MaintenanceDateTime || ' and has not been started.');
-
-      END IF;
-
-    END IF;
-
-  END CASE;
-
-END;
-/
-
--- Maintenance (Schedule)
-CREATE OR REPLACE TRIGGER trg_schedule_maintenance
-BEFORE INSERT OR UPDATE ON FlightRoute
-FOR EACH ROW
-
-DECLARE
-  v_totalFlightHours NUMBER(2);
-  v_airplaneID Airplane.AirplaneID%TYPE;
-  v_countRoutineCheck NUMBER(4);
-
-BEGIN
-
-  SELECT AirplaneID INTO v_airplaneID
-  FROM FlightSchedule
-  WHERE FlightScheduleID = :NEW.FlightScheduleID;
-
-  SELECT COUNT(*) INTO v_countRoutineCheck
-  FROM AirplaneMaintenance
-  WHERE AirplaneID = v_airplaneID;
-
-  IF (v_countRoutineCheck > 0) THEN 
-
-    SELECT SUM(FlightDuration) INTO v_totalFlightHours
-    FROM FlightRoute
-    WHERE DepartDateTime > (
-      SELECT MAX(MaintenanceDateTime)
-      FROM AirplaneMaintenance
-      WHERE MaintenanceType = 'Routine Check' AND AirplaneID = v_airplaneID
-    );
-
-  ELSE 
-    v_totalFlightHours := 0;
-
-  END IF;
-
-  v_totalFlightHours := v_totalFlightHours + :NEW.FlightDuration;
-
-  IF (v_totalFlightHours >= 24) THEN
-    INSERT INTO AirplaneMaintenance VALUES ('AM' || TO_CHAR(airplaneMaintenance_seq.nextval, 'FM0000'), 'Routine Check', TO_CHAR(:NEW.DepartDateTime + (:NEW.FlightDuration/24) + (1/24), 'DD/MM/YYYY HH24:MI:SS'), 1, NULL, NULL, NULL, v_airplaneID);
-
-  END IF;
-
-END;
-/
-
--- Airplane Disposal (Check)
-CREATE OR REPLACE TRIGGER trg_airplane_disposal_checking
-AFTER INSERT OR UPDATE ON AirplaneDisposal
-FOR EACH ROW
-
-DECLARE
-
-v_latestDepartDateTime FlightRoute.DepartDateTime%TYPE;
-v_latestArriveDateTime FlightRoute.ArriveDateTime%TYPE;
-v_latestFlightScheduleID FlightSchedule.FlightScheduleID%TYPE;
-v_numberOfFlight NUMBER(4);
-
-BEGIN
-
-  SELECT COUNT(FR.FlightScheduleID) INTO v_numberOfFlight
-  FROM FlightRoute FR, FlightSchedule FS
-  WHERE FR.FlightScheduleID = FS.FlightScheduleID AND FS.AirplaneID = :NEW.AirplaneID;
-
-  IF (v_numberOfFlight > 0) THEN
-
-    SELECT FR.DepartDateTime, FR.ArriveDateTime, FR.FlightScheduleID INTO v_latestDepartDateTime, v_latestArriveDateTime, v_latestFlightScheduleID
-    FROM FlightRoute FR, FlightSchedule FS
-    WHERE FR.FlightScheduleID = FS.FlightScheduleID AND FS.AirplaneID = :NEW.AirplaneID
-    ORDER BY ArriveDateTime DESC
-    FETCH FIRST 1 ROWS ONLY;
-
-    IF (:NEW.DisposalDate > v_latestArriveDateTime) THEN
-      UPDATE Airplane
-      SET CurrentStatus = 'Disposed'
-      WHERE AirplaneID = :NEW.AirplaneID;
-
-    ELSE
-      RAISE_APPLICATION_ERROR (-20000, 'Unable to dispose the airplane due to uncompleted flight schedule (' || v_latestFlightScheduleID || ') with Depart date time : ' || v_latestArriveDateTime);
-
-    END IF;
-  
-  ELSE
-    UPDATE Airplane
-    SET CurrentStatus = 'Disposed'
-    WHERE AirplaneID = :NEW.AirplaneID;
-
-  END IF;
-
-END;
-/
 
 CREATE OR REPLACE TRIGGER trg_calc_ArriveDateTime
 BEFORE INSERT OR UPDATE ON FlightRoute
@@ -756,6 +616,48 @@ FOR EACH ROW
 
 BEGIN
   :NEW.ArriveDateTime := :NEW.DepartDateTime + (:NEW.FlightDuration/24);
+END;
+/
+
+-------- ShanYi --------
+-- Luggage extrafee
+CREATE OR REPLACE TRIGGER trg_calc_extraWeightFee
+BEFORE INSERT OR UPDATE ON CheckingLuggage
+FOR EACH ROW
+
+DECLARE
+  v_extraWeight NUMBER(4,2);
+
+BEGIN
+  -- Check if the weight exceeds 23.00 kg
+  IF (:NEW.Weight > 23.00) THEN
+    -- Calculate the extra weight
+    v_extraWeight := :NEW.Weight - 23.00;
+    -- Calculate the extra fee
+    :NEW.ExtraFee := v_extraWeight * 8.00;
+  ELSE
+    -- If the weight does not exceed 23.00 kg, fee will be 0.00
+    :NEW.ExtraFee := 0.00;
+  END IF;
+END;
+/
+
+--insuranceClaim
+CREATE OR REPLACE TRIGGER trg_validate_policy
+BEFORE INSERT ON InsuranceClaim
+FOR EACH ROW
+
+DECLARE
+  v_foundPolicy NUMBER(5);
+
+BEGIN
+  SELECT COUNT(PolicyID) INTO v_foundPolicy
+  FROM Policy
+  WHERE PolicyID = :NEW.PolicyID;
+
+  IF (v_foundPolicy < 1) THEN
+    RAISE_APPLICATION_ERROR(-20000, 'Policy ID is invalid.');
+  END IF;
 END;
 /
 
