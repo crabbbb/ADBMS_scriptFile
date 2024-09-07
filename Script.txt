@@ -1391,7 +1391,7 @@ INSERT INTO CheckingLuggage (LuggageID, Type, Weight, Status, ExtraFee, CheckLug
 INSERT INTO CheckingLuggage (LuggageID, Type, Weight, Status, ExtraFee, CheckLuggageID) VALUES ('L' || TO_CHAR(checkingLuggage_seq.nextval, 'FM0000'), 'Checked', '40.05', 'Delivered', NULL, 'CL0225');
 INSERT INTO CheckingLuggage (LuggageID, Type, Weight, Status, ExtraFee, CheckLuggageID) VALUES ('L' || TO_CHAR(checkingLuggage_seq.nextval, 'FM0000'), 'Checked', '17.97', 'Delivered', NULL, 'CL0428');
 INSERT INTO CheckingLuggage (LuggageID, Type, Weight, Status, ExtraFee, CheckLuggageID) VALUES ('L' || TO_CHAR(checkingLuggage_seq.nextval, 'FM0000'), 'Carry-On', '3.78', 'In Transit', NULL, 'CL0392');
-INSERT INTO CheckingLuggage (LuggageID, Type, Weight, Status, ExtraFee, CheckLuggageID) VALUES ('L' || TO_CHAR(checkingLuggage_seq.nextval, 'FM0000'), 'Checked', '29.16', 'Delivered', NULL, 'CL341');
+INSERT INTO CheckingLuggage (LuggageID, Type, Weight, Status, ExtraFee, CheckLuggageID) VALUES ('L' || TO_CHAR(checkingLuggage_seq.nextval, 'FM0000'), 'Checked', '29.16', 'Delivered', NULL, 'CL0341');
 INSERT INTO CheckingLuggage (LuggageID, Type, Weight, Status, ExtraFee, CheckLuggageID) VALUES ('L' || TO_CHAR(checkingLuggage_seq.nextval, 'FM0000'), 'Carry-On', '5.65', 'Delivered', NULL, 'CL0448');
 INSERT INTO CheckingLuggage (LuggageID, Type, Weight, Status, ExtraFee, CheckLuggageID) VALUES ('L' || TO_CHAR(checkingLuggage_seq.nextval, 'FM0000'), 'Checked', '10.68', 'Checked In', NULL, 'CL0463');
 INSERT INTO CheckingLuggage (LuggageID, Type, Weight, Status, ExtraFee, CheckLuggageID) VALUES ('L' || TO_CHAR(checkingLuggage_seq.nextval, 'FM0000'), 'Carry-On', '6.07', 'Delivered', NULL, 'CL0053');
