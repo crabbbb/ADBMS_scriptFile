@@ -619,6 +619,48 @@ BEGIN
 END;
 /
 
+-------- ShanYi --------
+-- Luggage extrafee
+CREATE OR REPLACE TRIGGER trg_calc_extraWeightFee
+BEFORE INSERT OR UPDATE ON CheckingLuggage
+FOR EACH ROW
+
+DECLARE
+  v_extraWeight NUMBER(4,2);
+
+BEGIN
+  -- Check if the weight exceeds 23.00 kg
+  IF (:NEW.Weight > 23.00) THEN
+    -- Calculate the extra weight
+    v_extraWeight := :NEW.Weight - 23.00;
+    -- Calculate the extra fee
+    :NEW.ExtraFee := v_extraWeight * 8.00;
+  ELSE
+    -- If the weight does not exceed 23.00 kg, fee will be 0.00
+    :NEW.ExtraFee := 0.00;
+  END IF;
+END;
+/
+
+--insuranceClaim
+CREATE OR REPLACE TRIGGER trg_validate_policy
+BEFORE INSERT ON InsuranceClaim
+FOR EACH ROW
+
+DECLARE
+  v_foundPolicy NUMBER(5);
+
+BEGIN
+  SELECT COUNT(PolicyID) INTO v_foundPolicy
+  FROM Policy
+  WHERE PolicyID = :NEW.PolicyID;
+
+  IF (v_foundPolicy < 1) THEN
+    RAISE_APPLICATION_ERROR(-20000, 'Policy ID is invalid.');
+  END IF;
+END;
+/
+
 -- Member
 INSERT INTO Member (MemberID, MemberName, MemberGender, MemberIC, MemberEmail, MemberPhone, LoginPassword, BankAccountNumber) VALUES ('M' || TO_CHAR(member_seq.nextval, 'FM0000'), 'Adela Climson', 'M', '770203052567', 'adelaclimson@hotmail.com', '0143053042', 'xF1@QyR', '8587894931');
 INSERT INTO Member (MemberID, MemberName, MemberGender, MemberIC, MemberEmail, MemberPhone, LoginPassword, BankAccountNumber) VALUES ('M' || TO_CHAR(member_seq.nextval, 'FM0000'), 'Emalia Marklew', 'M', '711019107933', 'emaliamarklew@hotmail.com', '0144445822', 'jN3D8\CM', '3652198494');
