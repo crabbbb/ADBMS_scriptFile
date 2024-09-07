@@ -547,30 +547,36 @@ BEGIN
 END;
 /
 
+
 -- Refund
 CREATE OR REPLACE TRIGGER trg_new_refund
 AFTER INSERT ON Cancellation
 FOR EACH ROW
 
 DECLARE
-	v_cancellationID	Cancellation.CancellationID%TYPE;
-	v_bookingID		Cancellation.BookingID%TYPE;
+	v_departDate		Booking.DepartDate%TYPE;
 	v_paymentAmount		Payment.PaymentAmount%TYPE;
 	v_refundID		Refund.RefundID%TYPE;
 	v_refundDate		Refund.RefundDate%TYPE;
 	v_refundAmount		Refund.RefundAmount%TYPE;
 
 BEGIN
-	v_cancellationID := :NEW.CancellationID;
-	v_bookingID := :NEW.BookingID;
+	UPDATE Booking
+	SET BookingStatus = 'Cancelled'
+	WHERE BookingID = :NEW.BookingID;
 
-	SELECT PaymentAmount INTO v_paymentAmount
-	FROM Payment
-	WHERE BookingID = v_bookingID;
+	SELECT B.DepartDate, P.PaymentAmount INTO v_departDate, v_paymentAmount
+	FROM Booking B, Payment P
+	WHERE B.BookingID = P.BookingID AND B.BookingID = :NEW.BookingID;
 
-	v_refundID := 'RF' || v_bookingID;
+	v_refundID := 'RF' || :NEW.BookingID;
 	v_refundDate := SYSDATE;
-	v_refundAmount := v_paymentAmount;
+
+	IF (TRUNC(v_departDate) - TRUNC(SYSDATE) > 10) THEN
+		v_refundAmount := v_paymentAmount * 0.5;
+	ELSE
+		v_refundAmount := v_paymentAmount * 0.25;
+	END IF;
 
 	INSERT INTO Refund (RefundID, RefundDate, RefundAmount, CancellationID) VALUES (v_refundID, v_refundDate, v_refundAmount, :NEW.CancellationID);
 END;
@@ -593,10 +599,6 @@ BEGIN
 	IF (TRUNC(v_departDate) - TRUNC(SYSDATE) > 3) THEN
 		:NEW.CancellationID := 'CL' || :NEW.BookingID;
 		:NEW.CancellationDate := SYSDATE;
-
-		UPDATE Booking
-		SET BookingStatus = 'Cancelled'
-		WHERE BookingID = :NEW.BookingID;
 	ELSE
 		RAISE_APPLICATION_ERROR(-20000, 'Cancellation is not allowed to be made 3 days before the departure date.');
 	END IF;
@@ -606,54 +608,12 @@ END;
 
 ----- Fung Qi -----
 
--- Maintenance (Insert)
-CREATE OR REPLACE TRIGGER trg_track_maintenance
-BEFORE INSERT OR UPDATE ON AirplaneMaintenance
+CREATE OR REPLACE TRIGGER trg_calc_ArriveDateTime
+BEFORE INSERT OR UPDATE ON FlightRoute
 FOR EACH ROW
 
-DECLARE
-
-v_maintenanceEndDateTime TIMESTAMP;
-v_currentDateTime TIMESTAMP;
-v_duration INTERVAL DAY TO SECOND;
-
 BEGIN
-
-  v_currentDateTime := SYSTIMESTAMP;
-  v_maintenanceEndDateTime := :NEW.MaintenanceDateTime + (:NEW.HoursWork/24);
-
-  CASE
-  WHEN INSERTING THEN
-    IF (:NEW.MaintenanceDateTime < v_currentDateTime AND v_maintenanceEndDateTime > v_currentDateTime) THEN
-      :NEW.MaintenanceStatus := 'On-going';
-
-    ELSIF (v_maintenanceEndDateTime < v_currentDateTime) THEN
-      :NEW.MaintenanceStatus := 'Completed';
-
-    ELSIF (:NEW.MaintenanceDateTime > v_currentDateTime) THEN
-      :NEW.MaintenanceStatus := 'Scheduled';
-
-    END IF;
-
-  WHEN UPDATING THEN
-    IF (:NEW.MaintenanceStatus = 'Completed') THEN
-      IF (:NEW.MaintenanceDateTime < v_currentDateTime AND v_maintenanceEndDateTime > v_currentDateTime) THEN
-        v_duration := v_currentDateTime - :NEW.MaintenanceDateTime;
-        :NEW.HoursWork := CEIL(EXTRACT(HOUR FROM v_duration) + EXTRACT(MINUTE FROM v_duration) / 60);
-
-      ELSIF (v_maintenanceEndDateTime < v_currentDateTime) THEN
-        v_duration := v_currentDateTime - :NEW.MaintenanceDateTime;
-        :NEW.HoursWork := CEIL(EXTRACT(HOUR FROM v_duration) + EXTRACT(MINUTE FROM v_duration) / 60);
-
-      ELSIF (:NEW.MaintenanceDateTime > v_currentDateTime) THEN
-        RAISE_APPLICATION_ERROR (-20000, 'The maintenance (' || :NEW.MaintenanceID || ') was scheduled on ' || :NEW.MaintenanceDateTime || ' and has not been started.');
-
-      END IF;
-
-    END IF;
-
-  END CASE;
-
+  :NEW.ArriveDateTime := :NEW.DepartDateTime + (:NEW.FlightDuration/24);
 END;
 /
 
@@ -665,6 +625,46 @@ BEGIN
   :NEW.ArriveDateTime := :NEW.DepartDateTime + (:NEW.FlightDuration/24);
 END;
 /
+
+-------- ShanYi --------
+-- Luggage extrafee
+CREATE OR REPLACE TRIGGER trg_calc_extraWeightFee
+BEFORE INSERT OR UPDATE ON CheckingLuggage
+FOR EACH ROW
+
+DECLARE
+  v_extraWeight NUMBER(4,2);
+
+BEGIN
+  -- Check if the weight exceeds 23.00 kg
+  IF (:NEW.Weight > 23.00) THEN
+    -- Calculate the extra weight
+    v_extraWeight := :NEW.Weight - 23.00;
+    -- Calculate the extra fee
+    :NEW.ExtraFee := v_extraWeight * 8.00;
+  ELSE
+    -- If the weight does not exceed 23.00 kg, fee will be 0.00
+    :NEW.ExtraFee := 0.00;
+  END IF;
+END;
+/
+
+--insuranceClaim
+CREATE OR REPLACE TRIGGER trg_validate_policy
+BEFORE INSERT ON InsuranceClaim
+FOR EACH ROW
+
+DECLARE
+  v_foundPolicy NUMBER(5);
+
+BEGIN
+  SELECT COUNT(PolicyID) INTO v_foundPolicy
+  FROM Policy
+  WHERE PolicyID = :NEW.PolicyID;
+
+  IF (v_foundPolicy < 1) THEN
+    RAISE_APPLICATION_ERROR(-20000, 'Policy ID is invalid.');
+  END IF;
 
 -- Member
 INSERT INTO Member (MemberID, MemberName, MemberGender, MemberIC, MemberEmail, MemberPhone, LoginPassword, BankAccountNumber) VALUES ('M' || TO_CHAR(member_seq.nextval, 'FM0000'), 'Adela Climson', 'M', '770203052567', 'adelaclimson@hotmail.com', '0143053042', 'xF1@QyR', '8587894931');
@@ -3113,11 +3113,11 @@ INSERT INTO Booking (BookingID, BookingDate, NoOfPassenger, DepartDate, ReturnDa
 INSERT INTO Booking (BookingID, BookingDate, NoOfPassenger, DepartDate, ReturnDate, BookingStatus, MemberID, PolicyID) VALUES ('B' || TO_CHAR(booking_seq.nextval, 'FM0000'), '09/12/2023', '4', '14/05/2025', '15/05/2025', 'Confirmed', 'M0002', 'POL0081');
 INSERT INTO Booking (BookingID, BookingDate, NoOfPassenger, DepartDate, ReturnDate, BookingStatus, MemberID, PolicyID) VALUES ('B' || TO_CHAR(booking_seq.nextval, 'FM0000'), '09/12/2023', '3', '07/03/2025', '08/03/2025', 'Confirmed', 'M0008', 'POL0082');
 INSERT INTO Booking (BookingID, BookingDate, NoOfPassenger, DepartDate, ReturnDate, BookingStatus, MemberID, PolicyID) VALUES ('B' || TO_CHAR(booking_seq.nextval, 'FM0000'), '11/12/2023', '1', '23/02/2025', NULL, 'Confirmed', 'M0002', 'POL0083');
-INSERT INTO Booking (BookingID, BookingDate, NoOfPassenger, DepartDate, ReturnDate, BookingStatus, MemberID, PolicyID) VALUES ('B' || TO_CHAR(booking_seq.nextval, 'FM0000'), '13/12/2023', '3', '24/02/2025', NULL, 'Confirmed', 'M0006', 'POL0084');
+INSERT INTO Booking (BookingID, BookingDate, NoOfPassenger, DepartDate, ReturnDate, BookingStatus, MemberID, PolicyID) VALUES ('B' || TO_CHAR(booking_seq.nextval, 'FM0000'), '13/12/2023', '4', '24/02/2025', NULL, 'Confirmed', 'M0006', 'POL0084');
 INSERT INTO Booking (BookingID, BookingDate, NoOfPassenger, DepartDate, ReturnDate, BookingStatus, MemberID, PolicyID) VALUES ('B' || TO_CHAR(booking_seq.nextval, 'FM0000'), '15/12/2023', '4', '21/12/2023', '24/12/2023', 'Confirmed', 'M0010', 'POL0085');
 INSERT INTO Booking (BookingID, BookingDate, NoOfPassenger, DepartDate, ReturnDate, BookingStatus, MemberID, PolicyID) VALUES ('B' || TO_CHAR(booking_seq.nextval, 'FM0000'), '21/12/2023', '5', '01/01/2024', '07/01/2024', 'Confirmed', 'M0009', 'POL0086');
 INSERT INTO Booking (BookingID, BookingDate, NoOfPassenger, DepartDate, ReturnDate, BookingStatus, MemberID, PolicyID) VALUES ('B' || TO_CHAR(booking_seq.nextval, 'FM0000'), '22/12/2023', '4', '12/12/2024', '13/12/2024', 'Confirmed', 'M0004', 'POL0087');
-INSERT INTO Booking (BookingID, BookingDate, NoOfPassenger, DepartDate, ReturnDate, BookingStatus, MemberID, PolicyID) VALUES ('B' || TO_CHAR(booking_seq.nextval, 'FM0000'), '23/12/2023', '5', '16/01/2025', '18/01/2025', 'Confirmed', 'M0003', 'POL0088');
+INSERT INTO Booking (BookingID, BookingDate, NoOfPassenger, DepartDate, ReturnDate, BookingStatus, MemberID, PolicyID) VALUES ('B' || TO_CHAR(booking_seq.nextval, 'FM0000'), '23/12/2023', '4', '16/01/2025', '18/01/2025', 'Confirmed', 'M0003', 'POL0088');
 INSERT INTO Booking (BookingID, BookingDate, NoOfPassenger, DepartDate, ReturnDate, BookingStatus, MemberID, PolicyID) VALUES ('B' || TO_CHAR(booking_seq.nextval, 'FM0000'), '29/12/2023', '4', '12/11/2024', NULL, 'Confirmed', 'M0006', 'POL0089');
 INSERT INTO Booking (BookingID, BookingDate, NoOfPassenger, DepartDate, ReturnDate, BookingStatus, MemberID, PolicyID) VALUES ('B' || TO_CHAR(booking_seq.nextval, 'FM0000'), '31/12/2023', '3', '20/02/2025', NULL, 'Confirmed', 'M0007', 'POL0090');
 INSERT INTO Booking (BookingID, BookingDate, NoOfPassenger, DepartDate, ReturnDate, BookingStatus, MemberID, PolicyID) VALUES ('B' || TO_CHAR(booking_seq.nextval, 'FM0000'), '02/01/2024', '4', '06/01/2024', '12/01/2024', 'Confirmed', 'M0006', 'POL0091');
