@@ -429,9 +429,18 @@ BEFORE INSERT ON BookingDetail
 FOR EACH ROW
 
 DECLARE
+	v_exist NUMBER(5);
 	v_found	NUMBER(5);
 
 BEGIN
+	SELECT COUNT(CheckLuggageID) INTO v_exist
+	FROM BookingDetail
+	WHERE CheckLuggageID = :NEW.CheckLuggageID;
+
+	IF (v_exist > 0) THEN
+		RAISE_APPLICATION_ERROR(-20000, 'Checking Luggage ID already exists.');
+	END IF;
+
 	SELECT COUNT(CheckLuggageID) INTO v_found
 	FROM CheckingLuggage
 	WHERE CheckLuggageID = :NEW.CheckLuggageID;
