@@ -1774,7 +1774,7 @@ INSERT INTO Policy (PolicyID, PurchaseStatus, InsuranceID) VALUES ('POL' || TO_C
 INSERT INTO Policy (PolicyID, PurchaseStatus, InsuranceID) VALUES ('POL' || TO_CHAR(policy_seq.nextval, 'FM0000'), 'Purchased', 'INS0003');
 INSERT INTO Policy (PolicyID, PurchaseStatus, InsuranceID) VALUES ('POL' || TO_CHAR(policy_seq.nextval, 'FM0000'), 'N/A', NULL);
 INSERT INTO Policy (PolicyID, PurchaseStatus, InsuranceID) VALUES ('POL' || TO_CHAR(policy_seq.nextval, 'FM0000'), 'Purchased', 'INS0007');
-INSERT INTO Policy (PolicyID, PurchaseStatus, InsuranceID) VALUES ('POL' || TO_CHAR(policy_seq.nextval, 'FM0000'), 'N/A', NULL);
+INSERT INTO Policy (PolicyID, PurchaseStatus, InsuranceID) VALUES ('POL' || TO_CHAR(policy_seq.nextval, 'FM0000'), 'Purchased', 'INS0004');
 INSERT INTO Policy (PolicyID, PurchaseStatus, InsuranceID) VALUES ('POL' || TO_CHAR(policy_seq.nextval, 'FM0000'), 'Purchased', 'INS0001');
 INSERT INTO Policy (PolicyID, PurchaseStatus, InsuranceID) VALUES ('POL' || TO_CHAR(policy_seq.nextval, 'FM0000'), 'Purchased', 'INS0005');
 INSERT INTO Policy (PolicyID, PurchaseStatus, InsuranceID) VALUES ('POL' || TO_CHAR(policy_seq.nextval, 'FM0000'), 'N/A', NULL);
@@ -1802,7 +1802,7 @@ INSERT INTO Policy (PolicyID, PurchaseStatus, InsuranceID) VALUES ('POL' || TO_C
 INSERT INTO Policy (PolicyID, PurchaseStatus, InsuranceID) VALUES ('POL' || TO_CHAR(policy_seq.nextval, 'FM0000'), 'N/A', NULL);
 INSERT INTO Policy (PolicyID, PurchaseStatus, InsuranceID) VALUES ('POL' || TO_CHAR(policy_seq.nextval, 'FM0000'), 'N/A', NULL);
 INSERT INTO Policy (PolicyID, PurchaseStatus, InsuranceID) VALUES ('POL' || TO_CHAR(policy_seq.nextval, 'FM0000'), 'Purchased', 'INS0010');
-INSERT INTO Policy (PolicyID, PurchaseStatus, InsuranceID) VALUES ('POL' || TO_CHAR(policy_seq.nextval, 'FM0000'), 'N/A', NULL);
+INSERT INTO Policy (PolicyID, PurchaseStatus, InsuranceID) VALUES ('POL' || TO_CHAR(policy_seq.nextval, 'FM0000'), 'Purchased', 'INS0010');
 INSERT INTO Policy (PolicyID, PurchaseStatus, InsuranceID) VALUES ('POL' || TO_CHAR(policy_seq.nextval, 'FM0000'), 'Purchased', 'INS0009');
 INSERT INTO Policy (PolicyID, PurchaseStatus, InsuranceID) VALUES ('POL' || TO_CHAR(policy_seq.nextval, 'FM0000'), 'N/A', NULL);
 INSERT INTO Policy (PolicyID, PurchaseStatus, InsuranceID) VALUES ('POL' || TO_CHAR(policy_seq.nextval, 'FM0000'), 'Purchased', 'INS0006');
