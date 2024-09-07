@@ -649,7 +649,6 @@ BEGIN
 END;
 /
 
---insuranceClaim
 CREATE OR REPLACE TRIGGER trg_validate_policy
 BEFORE INSERT ON InsuranceClaim
 FOR EACH ROW
@@ -665,6 +664,8 @@ BEGIN
   IF (v_foundPolicy < 1) THEN
     RAISE_APPLICATION_ERROR(-20000, 'Policy ID is invalid.');
   END IF;
+END;
+/
 
 -- Member
 INSERT INTO Member (MemberID, MemberName, MemberGender, MemberIC, MemberEmail, MemberPhone, LoginPassword, BankAccountNumber) VALUES ('M' || TO_CHAR(member_seq.nextval, 'FM0000'), 'Adela Climson', 'M', '770203052567', 'adelaclimson@hotmail.com', '0143053042', 'xF1@QyR', '8587894931');
