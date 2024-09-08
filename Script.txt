@@ -731,6 +731,35 @@ END;
 /
 
 
+-- FlightSchedule
+
+CREATE OR REPLACE TRIGGER trg_update_totalFlightHours
+AFTER INSERT ON FlightSchedule
+FOR EACH ROW
+
+DECLARE
+  v_currentTotalFlightHours Airplane.TotalFlightHours%TYPE;
+  v_newTotalFlightHours Airplane.TotalFlightHours%TYPE;
+
+BEGIN
+
+  SELECT TotalFlightHours INTO v_currentTotalFlightHours
+  FROM Airplane
+  WHERE AirplaneID = :NEW.AirplaneID;
+
+  IF (v_currentTotalFlightHours > 0) THEN
+    v_newTotalFlightHours := v_currentTotalFlightHours + :NEW.FlightDuration;
+  ELSE
+    v_newTotalFlightHours := :NEW.FlightDuration;
+  END IF;
+
+  UPDATE Airplane
+  SET TotalFlightHours = v_newTotalFlightHours
+  WHERE AirplaneID = :NEW.AirplaneID;
+
+END;
+/
+
 CREATE OR REPLACE TRIGGER trg_calc_ArriveDateTime
 BEFORE INSERT OR UPDATE ON FlightSchedule
 FOR EACH ROW
