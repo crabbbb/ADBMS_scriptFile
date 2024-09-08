@@ -4,7 +4,6 @@ SET LINESIZE 120
 SET PAGESIZE 100
 
 DROP TABLE BookingDetail;
-DROP TABLE FlightRoute;
 
 DROP TABLE StaffSchedule;
 DROP TABLE FlightEvent;
