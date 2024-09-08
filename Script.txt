@@ -617,6 +617,8 @@ FOR EACH ROW
 
 DECLARE
 
+v_maintenanceDateTime AirplaneMaintenance.MaintenanceDateTime%TYPE;
+v_hoursWork AirplaneMaintenance.HoursWork%TYPE;
 v_maintenanceEndDateTime TIMESTAMP;
 v_currentDateTime TIMESTAMP;
 v_duration INTERVAL DAY TO SECOND;
@@ -624,10 +626,10 @@ v_duration INTERVAL DAY TO SECOND;
 BEGIN
 
   v_currentDateTime := SYSTIMESTAMP;
-  v_maintenanceEndDateTime := :NEW.MaintenanceDateTime + (:NEW.HoursWork/24);
 
   CASE
   WHEN INSERTING THEN
+    v_maintenanceEndDateTime := :NEW.MaintenanceDateTime + (:NEW.HoursWork/24);
     IF (:NEW.MaintenanceDateTime < v_currentDateTime AND v_maintenanceEndDateTime > v_currentDateTime) THEN
       :NEW.MaintenanceStatus := 'On-going';
 
@@ -640,17 +642,40 @@ BEGIN
     END IF;
 
   WHEN UPDATING THEN
-    IF (:NEW.MaintenanceStatus = 'Completed') THEN
-      IF (:NEW.MaintenanceDateTime < v_currentDateTime AND v_maintenanceEndDateTime > v_currentDateTime) THEN
-        v_duration := v_currentDateTime - :NEW.MaintenanceDateTime;
-        :NEW.HoursWork := CEIL(EXTRACT(HOUR FROM v_duration) + EXTRACT(MINUTE FROM v_duration) / 60);
+    IF UPDATING('MaintenanceStatus') THEN
+      IF (:NEW.MaintenanceStatus = 'Completed') THEN
 
-      ELSIF (v_maintenanceEndDateTime < v_currentDateTime) THEN
-        v_duration := v_currentDateTime - :NEW.MaintenanceDateTime;
-        :NEW.HoursWork := CEIL(EXTRACT(HOUR FROM v_duration) + EXTRACT(MINUTE FROM v_duration) / 60);
+        IF UPDATING('MaintenanceDateTime') AND UPDATING ('HoursWork') THEN
+          v_maintenanceDateTime := :NEW.MaintenanceDateTime;
+          v_hoursWork := :NEW.HoursWork;
 
-      ELSIF (:NEW.MaintenanceDateTime > v_currentDateTime) THEN
-        RAISE_APPLICATION_ERROR (-20000, 'The maintenance (' || :NEW.MaintenanceID || ') was scheduled on ' || :NEW.MaintenanceDateTime || ' and has not been started.');
+        ELSIF UPDATING('MaintenanceDateTime') THEN
+          v_maintenanceDateTime := :NEW.MaintenanceDateTime;
+          v_hoursWork := :OLD.HoursWork;
+
+	ELSE
+          v_maintenanceDateTime := :OLD.MaintenanceDateTime;
+          v_hoursWork := :OLD.HoursWork;
+
+        END IF;
+
+        v_maintenanceEndDateTime := v_maintenanceDateTime + (v_hoursWork/24);
+            DBMS_OUTPUT.PUT_LINE('maintenance end time : ' || v_maintenanceEndDateTime);
+
+        IF (v_maintenanceDateTime < v_currentDateTime AND v_maintenanceEndDateTime > v_currentDateTime) THEN
+          v_duration := v_currentDateTime - v_maintenanceDateTime;
+          :NEW.HoursWork := CEIL(EXTRACT(HOUR FROM v_duration) + EXTRACT(MINUTE FROM v_duration) / 60);
+          DBMS_OUTPUT.PUT_LINE('done earlier, duration : ' || v_duration);
+
+        ELSIF (v_maintenanceEndDateTime < v_currentDateTime) THEN
+          v_duration := v_currentDateTime - v_maintenanceDateTime;
+          :NEW.HoursWork := CEIL(EXTRACT(HOUR FROM v_duration) + EXTRACT(MINUTE FROM v_duration) / 60);
+          DBMS_OUTPUT.PUT_LINE('done late, duration : ' || v_duration);
+
+        ELSIF (v_maintenanceDateTime > v_currentDateTime) THEN
+          RAISE_APPLICATION_ERROR (-20000, 'The maintenance (' || :OLD.MaintenanceID || ') was scheduled on ' || v_maintenanceDateTime || ' and has not been started.');
+
+        END IF;
 
       END IF;
 
@@ -661,9 +686,10 @@ BEGIN
 END;
 /
 
+
 -- Maintenance (Schedule)
 CREATE OR REPLACE TRIGGER trg_schedule_maintenance
-BEFORE INSERT OR UPDATE ON FlightSchedule
+BEFORE INSERT ON FlightSchedule
 FOR EACH ROW
 
 DECLARE
