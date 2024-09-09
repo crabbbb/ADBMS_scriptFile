@@ -36,44 +36,44 @@ DROP TABLE Passenger;
 DROP TABLE Member;
 
 CREATE TABLE Member (
-  MemberID 		VARCHAR(5) 	NOT NULL,
-  MemberName 		VARCHAR(50) 	NOT NULL,
-  MemberGender		VARCHAR(1)	NOT NULL,
-  MemberIC 		VARCHAR(12) 	NOT NULL UNIQUE,
-  MemberEmail 		VARCHAR(50) 	NOT NULL UNIQUE,
-  MemberPhone 		VARCHAR(11) 	NOT NULL,
-  LoginPassword 	VARCHAR(20) 	NOT NULL,
-  BankAccountNumber 	VARCHAR(10) 	NOT NULL,
+  MemberID 		 VARCHAR(5) 	 NOT NULL,
+  MemberName 		 VARCHAR(50) 	 NOT NULL,
+  MemberGender		 VARCHAR(1)	 NOT NULL,
+  MemberIC 		 VARCHAR(12) 	 NOT NULL UNIQUE,
+  MemberEmail 		 VARCHAR(50) 	 NOT NULL UNIQUE,
+  MemberPhone 		 VARCHAR(11) 	 NOT NULL,
+  LoginPassword 	 VARCHAR(20) 	 NOT NULL,
+  BankAccountNumber 	 VARCHAR(10) 	 NOT NULL,
   PRIMARY KEY (MemberID)
 );
 
 CREATE TABLE Passenger (
-  PassengerID 		VARCHAR(5) 	NOT NULL,
-  PassengerType 	VARCHAR(5) 	NOT NULL,
-  PassengerName 	VARCHAR(50) 	NOT NULL,
-  PassengerGender 	VARCHAR(1) 	NOT NULL,
-  PassengerIC 		VARCHAR(12) 	NOT NULL UNIQUE,
+  PassengerID 		 VARCHAR(5) 	 NOT NULL,
+  PassengerType 	 VARCHAR(5) 	 NOT NULL,
+  PassengerName 	 VARCHAR(50) 	 NOT NULL,
+  PassengerGender 	 VARCHAR(1) 	 NOT NULL,
+  PassengerIC 		 VARCHAR(12) 	 NOT NULL UNIQUE,
   PRIMARY KEY (PassengerID)
 );
 
 CREATE TABLE Airport (
-  AirportID 		VARCHAR(5) 	NOT NULL,
-  AirportName 		VARCHAR(30) 	NOT NULL,
-  City 			VARCHAR(50) 	NOT NULL,
-  CountryCode 		VARCHAR(5) 	NOT NULL,
+  AirportID 		 VARCHAR(5) 	 NOT NULL,
+  AirportName 		 VARCHAR(30) 	 NOT NULL,
+  City 			 VARCHAR(50) 	NOT NULL,
+  CountryCode 		 VARCHAR(5) 	 NOT NULL,
   PRIMARY KEY (AirportID) 
 );
 
 CREATE TABLE Airplane (
-  AirplaneID 		VARCHAR(6) 	NOT NULL,
-  TailNumber 		VARCHAR(6) 	NOT NULL UNIQUE,
-  Model 		VARCHAR(50) 	NOT NULL,
-  Manufacturer 		VARCHAR(50) 	NOT NULL,
-  DateOfManufacture 	DATE 		NOT NULL,
-  TotalFlightHours 	NUMBER(6) 	NOT NULL,
-  CurrentStatus 	VARCHAR(20),
-  PurchasePrice 	NUMBER(9),
-  AirportID 		VARCHAR(5)	NOT NULL,
+  AirplaneID 		 VARCHAR(6) 	 NOT NULL,
+  TailNumber 		 VARCHAR(6) 	 NOT NULL UNIQUE,
+  Model 		 VARCHAR(50) 	 NOT NULL,
+  Manufacturer 		 VARCHAR(50)  	NOT NULL,
+  DateOfManufacture 	 DATE 		 NOT NULL,
+  TotalFlightHours 	 NUMBER(6) 	 NOT NULL,
+  CurrentStatus 	 VARCHAR(20),
+  PurchasePrice 	 NUMBER(9),
+  AirportID 		 VARCHAR(5)	 NOT NULL,
   FOREIGN KEY (AirportID) REFERENCES Airport(AirportID),
   PRIMARY KEY (AirplaneID)
 );
@@ -89,10 +89,10 @@ CREATE TABLE Item (
 );
 
 CREATE TABLE Staff (
-  StaffID 		VARCHAR(5) 	NOT NULL,
-  StaffName 		VARCHAR(50) 	NOT NULL,
-  StaffPosition 	VARCHAR(50) 	NOT NULL,
-  StaffIC 		VARCHAR(12) 	NOT NULL UNIQUE,
+  StaffID 		 VARCHAR(5) 	 NOT NULL,
+  StaffName 		 VARCHAR(50) 	 NOT NULL,
+  StaffPosition 	 VARCHAR(50) 	 NOT NULL,
+  StaffIC 		 VARCHAR(12) 	 NOT NULL UNIQUE,
   PRIMARY KEY (StaffID)
 );
 
@@ -176,40 +176,40 @@ CREATE TABLE PartReplacement (
 );
 
 CREATE TABLE FlightSchedule (
-  FlightScheduleID 	VARCHAR(6) 	NOT NULL,
-  DepartDateTime TIMESTAMP  NOT NULL,
-  ArriveDateTime TIMESTAMP,
-  AdultPrice		NUMBER(11,2)	NOT NULL,
-  ChildPrice		NUMBER(11,2)	NOT NULL,
-  FlightDuration NUMBER(2) NOT NULL,
-  AirplaneID 		VARCHAR(6) 	NOT NULL,
-  AirportID   VARCHAR(5) NOT NULL,
+  FlightScheduleID 	 VARCHAR(6) 	 NOT NULL,
+  DepartDateTime  TIMESTAMP   NOT NULL,
+  ArriveDateTime  TIMESTAMP,
+  AdultPrice		 NUMBER(11,2)	 NOT NULL,
+  ChildPrice		 NUMBER(11,2)	 NOT NULL,
+  FlightDuration  NUMBER(2)  NOT NULL,
+  AirplaneID 		 VARCHAR(6) 	 NOT NULL,
+  AirportID    VARCHAR(5)  NOT NULL,
   PRIMARY KEY (FlightScheduleID),
   FOREIGN KEY (AirplaneID) REFERENCES Airplane(AirplaneID),
   FOREIGN KEY (AirportID) REFERENCES Airport(AirportID)
 );
 
 CREATE TABLE Booking (
-  BookingID 		VARCHAR(5) 	NOT NULL,
-  BookingDate 		DATE 		NOT NULL,
-  NoOfPassenger 	NUMBER(3) 	NOT NULL,
-  DepartDate 		DATE,
-  ReturnDate 		DATE,
-  BookingStatus 	VARCHAR(15) 	NOT NULL,
-  MemberID 		VARCHAR(5) 	NOT NULL,
-  PolicyID 		VARCHAR(7) 	NOT NULL,
+  BookingID 		 VARCHAR(5) 	 NOT NULL,
+  BookingDate 		 DATE 		 NOT NULL,
+  NoOfPassenger 	 NUMBER(3) 	 NOT NULL,
+  DepartDate 		 DATE,
+  ReturnDate 		 DATE,
+  BookingStatus 	 VARCHAR(15)  	NOT NULL,
+  MemberID 		 VARCHAR(5) 	 NOT NULL,
+  PolicyID 		 VARCHAR(7) 	 NOT NULL,
   PRIMARY KEY (BookingID),
   FOREIGN KEY (MemberID) REFERENCES Member(MemberID),
   FOREIGN KEY (PolicyID) REFERENCES Policy(PolicyID)
 );
 
 CREATE TABLE BookingDetail (
-  BookingID 		VARCHAR(5) 	NOT NULL,
-  PassengerID 		VARCHAR(5) 	NOT NULL,
-  WayID 		NUMBER(1) 	NOT NULL,
-  FlightScheduleID 	VARCHAR(6) 	NOT NULL,
-  SeatID 		VARCHAR(9) 	NOT NULL,
-  CheckLuggageID 	VARCHAR(6) 	NOT NULL,
+  BookingID 		 VARCHAR(5) 	 NOT NULL,
+  PassengerID 		 VARCHAR(5) 	 NOT NULL,
+  WayID 		 NUMBER(1) 	 NOT NULL,
+  FlightScheduleID 	 VARCHAR(6) 	 NOT NULL,
+  SeatID 		 VARCHAR(9) 	 NOT NULL,
+  CheckLuggageID 	 VARCHAR(6) 	 NOT NULL,
   PRIMARY KEY (BookingID, PassengerID, WayID),
   FOREIGN KEY (BookingID) REFERENCES Booking(BookingID),
   FOREIGN KEY (PassengerID) REFERENCES Passenger(PassengerID),
@@ -218,28 +218,28 @@ CREATE TABLE BookingDetail (
 );
 
 CREATE TABLE Payment (
-  PaymentID 		VARCHAR(7) 	NOT NULL,
-  PaymentDate 		TIMESTAMP 	NOT NULL,
-  PaymentAmount 	NUMBER(7,2) 	NOT NULL,
-  PaymentMethod 	VARCHAR(20) 	NOT NULL,
-  BookingID 		VARCHAR(5) 	NOT NULL,
+  PaymentID 		 VARCHAR(7) 	 NOT NULL,
+  PaymentDate 		 TIMESTAMP 	 NOT NULL,
+  PaymentAmount 	 NUMBER(7,2) 	 NOT NULL,
+  PaymentMethod 	 VARCHAR(20) 	 NOT NULL,
+  BookingID 		 VARCHAR(5) 	 NOT NULL,
   PRIMARY KEY (PaymentID),
   FOREIGN KEY (BookingID) REFERENCES Booking(BookingID)
 );
 
 CREATE TABLE Cancellation (
-  CancellationID 	VARCHAR(7) 	NOT NULL,
-  CancellationDate 	TIMESTAMP 	NOT NULL,
-  BookingID 		VARCHAR(5),
+  CancellationID 	 VARCHAR(7) 	 NOT NULL,
+  CancellationDate 	 TIMESTAMP 	 NOT NULL,
+  BookingID 		 VARCHAR(5),
   PRIMARY KEY (CancellationID),
   FOREIGN KEY (BookingID) REFERENCES Booking(BookingID)
 );
 
 CREATE TABLE Refund (
-  RefundID 		VARCHAR(7) 	NOT NULL,
-  RefundDate 		TIMESTAMP 	NOT NULL,
-  RefundAmount 		NUMBER(7,2) 	NOT NULL,
-  CancellationID 	VARCHAR(7) 	NOT NULL,
+  RefundID 		 VARCHAR(7) 	 NOT NULL,
+  RefundDate 		 TIMESTAMP 	 NOT NULL,
+  RefundAmount 		 NUMBER(7,2) 	 NOT NULL,
+  CancellationID 	 VARCHAR(7) 	 NOT NULL,
   PRIMARY KEY (RefundID),
   FOREIGN KEY (CancellationID) REFERENCES Cancellation(CancellationID)
 );
@@ -267,11 +267,11 @@ CREATE TABLE FlightEvent (
 );
 
 CREATE TABLE Leave (
-  LeaveID 		VARCHAR(7) 	NOT NULL,
-  LeaveDate 		DATE 		NOT NULL,
-  LeaveReason		VARCHAR(200),
-  LeaveStatus		VARCHAR(20)	NOT NULL,
-  StaffID 		VARCHAR(5),
+  LeaveID 		 VARCHAR(7) 	 NOT NULL,
+  LeaveDate 		 DATE 		 NOT NULL,
+  LeaveReason		 VARCHAR(200),
+  LeaveStatus		 VARCHAR(20)	 NOT NULL,
+  StaffID 		 VARCHAR(5),
   PRIMARY KEY (LeaveID),
   FOREIGN KEY (StaffID) REFERENCES Staff(StaffID)
 );
