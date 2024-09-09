@@ -611,6 +611,11 @@ END;
 
 
 ----- Fung Qi -----
+CREATE OR REPLACE FUNCTION fun_getEndDateTime (v_startDateTime TIMESTAMP, v_duration NUMBER) RETURN TIMESTAMP IS 
+BEGIN 
+	RETURN (v_startDateTime + (v_duration/24));
+END;
+/
 
 -- Maintenance (Insert)
 CREATE OR REPLACE TRIGGER trg_track_maintenance
@@ -631,7 +636,7 @@ BEGIN
 
   CASE
   WHEN INSERTING THEN
-    v_maintenanceEndDateTime := :NEW.MaintenanceDateTime + (:NEW.HoursWork/24);
+    v_maintenanceEndDateTime := fun_getEndDateTime(:NEW.MaintenanceDateTime, :NEW.HoursWork);
     IF (:NEW.MaintenanceDateTime <= v_currentDateTime AND v_maintenanceEndDateTime > v_currentDateTime) THEN
       :NEW.MaintenanceStatus := 'On-going';
 
@@ -655,13 +660,13 @@ BEGIN
           v_maintenanceDateTime := :NEW.MaintenanceDateTime;
           v_hoursWork := :OLD.HoursWork;
 
-	ELSE
+	      ELSE
           v_maintenanceDateTime := :OLD.MaintenanceDateTime;
           v_hoursWork := :OLD.HoursWork;
 
         END IF;
 
-        v_maintenanceEndDateTime := v_maintenanceDateTime + (v_hoursWork/24);
+        v_maintenanceEndDateTime := fun_getEndDateTime(v_maintenanceDateTime, v_hoursWork);
             DBMS_OUTPUT.PUT_LINE('maintenance end time : ' || v_maintenanceEndDateTime);
 
         IF (v_maintenanceDateTime < v_currentDateTime AND v_maintenanceEndDateTime > v_currentDateTime) THEN
@@ -775,11 +780,11 @@ FOR EACH ROW
 BEGIN
   CASE
     WHEN INSERTING THEN
-    :NEW.ArriveDateTime := :NEW.DepartDateTime + (:NEW.FlightDuration/24);
+    :NEW.ArriveDateTime := fun_getEndDateTime(:NEW.DepartDateTime, :NEW.FlightDuration);
     
     WHEN UPDATING THEN
     IF UPDATING('DepartDateTime') THEN
-      :NEW.ArriveDateTime := :NEW.DepartDateTime + (:NEW.FlightDuration/24);
+      :NEW.ArriveDateTime := fun_getEndDateTime(:NEW.DepartDateTime, :NEW.FlightDuration);
     END IF;
   END CASE;
 END;
