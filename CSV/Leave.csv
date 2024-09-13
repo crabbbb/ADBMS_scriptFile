@@ -1,0 +1,201 @@
+LeaveID,LeaveDate,LeaveReason,LeaveStatus,StaffID
+ReplaceMe,06/02/2022,Dental Emergencies,Reject,S0005
+ReplaceMe,18/07/2024,Death of a loved one,Approve,S0009
+ReplaceMe,01/09/2022,Family Emergency,Reject,S0003
+ReplaceMe,20/07/2023,Dental Emergencies,Approve,S0018
+ReplaceMe,06/06/2023,Sick,Reject,S0013
+ReplaceMe,21/08/2022,Sick,Approve,S0013
+ReplaceMe,20/08/2024,Family Emergency,Approve,S0019
+ReplaceMe,07/05/2022,Dental Emergencies,Reject,S0017
+ReplaceMe,06/05/2024,Accidents,Reject,S0009
+ReplaceMe,19/08/2022,Dental Emergencies,Reject,S0020
+ReplaceMe,09/10/2022,Sick,Reject,S0020
+ReplaceMe,10/07/2022,Accidents,Approve,S0010
+ReplaceMe,27/09/2022,Sick,Reject,S0011
+ReplaceMe,06/05/2023,Family Emergency,Approve,S0007
+ReplaceMe,16/04/2023,Death of a loved one,Reject,S0010
+ReplaceMe,13/04/2023,Accidents,Reject,S0001
+ReplaceMe,11/03/2022,Muscle Pain,Approve,S0008
+ReplaceMe,28/12/2023,Dental Emergencies,Approve,S0006
+ReplaceMe,14/06/2024,Muscle Pain,Reject,S0015
+ReplaceMe,04/12/2023,Muscle Pain,Approve,S0001
+ReplaceMe,29/06/2022,Disease,Approve,S0013
+ReplaceMe,01/10/2023,Family Emergency,Reject,S0018
+ReplaceMe,07/12/2022,Muscle Pain,Approve,S0004
+ReplaceMe,24/09/2023,Family Emergency,Reject,S0006
+ReplaceMe,06/05/2024,Accidents,Approve,S0004
+ReplaceMe,11/08/2023,Disease,Reject,S0001
+ReplaceMe,12/06/2022,Sick,Reject,S0009
+ReplaceMe,03/03/2022,Muscle Pain,Approve,S0007
+ReplaceMe,10/03/2024,Sick,Approve,S0007
+ReplaceMe,09/08/2024,Dental Emergencies,Reject,S0015
+ReplaceMe,05/08/2023,Accidents,Reject,S0009
+ReplaceMe,23/10/2023,Muscle Pain,Approve,S0019
+ReplaceMe,19/04/2023,Death of a loved one,Approve,S0004
+ReplaceMe,08/03/2022,Sick,Approve,S0004
+ReplaceMe,30/07/2024,Sick,Approve,S0015
+ReplaceMe,05/02/2023,Accidents,Reject,S0013
+ReplaceMe,30/06/2023,Family Emergency,Reject,S0014
+ReplaceMe,31/07/2022,Death of a loved one,Reject,S0003
+ReplaceMe,25/01/2023,Dental Emergencies,Reject,S0002
+ReplaceMe,08/10/2023,Muscle Pain,Approve,S0020
+ReplaceMe,19/08/2022,Dental Emergencies,Reject,S0008
+ReplaceMe,27/06/2023,Family Emergency,Approve,S0015
+ReplaceMe,04/03/2024,Muscle Pain,Approve,S0003
+ReplaceMe,29/06/2022,Dental Emergencies,Reject,S0016
+ReplaceMe,07/03/2023,Accidents,Reject,S0015
+ReplaceMe,28/07/2023,Accidents,Approve,S0003
+ReplaceMe,11/04/2024,Family Emergency,Reject,S0015
+ReplaceMe,01/04/2024,Disease,Reject,S0015
+ReplaceMe,24/09/2022,Sick,Approve,S0014
+ReplaceMe,29/10/2023,Accidents,Reject,S0017
+ReplaceMe,14/03/2023,Family Emergency,Reject,S0008
+ReplaceMe,02/02/2024,Muscle Pain,Reject,S0017
+ReplaceMe,22/07/2024,Family Emergency,Reject,S0013
+ReplaceMe,23/06/2024,Muscle Pain,Approve,S0017
+ReplaceMe,01/03/2023,Accidents,Reject,S0020
+ReplaceMe,22/08/2022,Sick,Reject,S0004
+ReplaceMe,04/03/2022,Death of a loved one,Reject,S0012
+ReplaceMe,18/01/2023,Sick,Approve,S0003
+ReplaceMe,07/06/2024,Muscle Pain,Approve,S0003
+ReplaceMe,14/05/2022,Death of a loved one,Approve,S0005
+ReplaceMe,30/01/2023,Muscle Pain,Reject,S0007
+ReplaceMe,29/07/2023,Dental Emergencies,Reject,S0015
+ReplaceMe,18/02/2022,Family Emergency,Reject,S0015
+ReplaceMe,20/07/2022,Muscle Pain,Reject,S0010
+ReplaceMe,15/09/2022,Muscle Pain,Reject,S0014
+ReplaceMe,16/01/2023,Muscle Pain,Reject,S0016
+ReplaceMe,07/10/2022,Sick,Approve,S0008
+ReplaceMe,04/06/2024,Sick,Approve,S0016
+ReplaceMe,20/02/2023,Family Emergency,Reject,S0016
+ReplaceMe,12/10/2022,Sick,Reject,S0005
+ReplaceMe,01/02/2022,Family Emergency,Approve,S0001
+ReplaceMe,24/05/2024,Death of a loved one,Reject,S0004
+ReplaceMe,22/02/2022,Dental Emergencies,Reject,S0018
+ReplaceMe,21/08/2024,Dental Emergencies,Reject,S0006
+ReplaceMe,13/12/2022,Family Emergency,Approve,S0018
+ReplaceMe,16/03/2022,Disease,Reject,S0009
+ReplaceMe,20/06/2023,Sick,Approve,S0007
+ReplaceMe,04/05/2022,Family Emergency,Reject,S0019
+ReplaceMe,21/05/2022,Death of a loved one,Approve,S0017
+ReplaceMe,07/05/2022,Disease,Reject,S0006
+ReplaceMe,13/08/2022,Accidents,Reject,S0001
+ReplaceMe,13/11/2022,Family Emergency,Approve,S0002
+ReplaceMe,27/01/2022,Family Emergency,Approve,S0012
+ReplaceMe,24/10/2023,Sick,Reject,S0009
+ReplaceMe,03/06/2023,Muscle Pain,Reject,S0013
+ReplaceMe,05/10/2022,Dental Emergencies,Approve,S0015
+ReplaceMe,19/08/2024,Sick,Approve,S0007
+ReplaceMe,13/05/2024,Dental Emergencies,Reject,S0010
+ReplaceMe,11/02/2022,Accidents,Reject,S0017
+ReplaceMe,28/07/2024,Muscle Pain,Approve,S0016
+ReplaceMe,10/06/2024,Accidents,Approve,S0011
+ReplaceMe,08/04/2023,Accidents,Approve,S0004
+ReplaceMe,10/01/2023,Death of a loved one,Approve,S0014
+ReplaceMe,20/09/2023,Death of a loved one,Approve,S0015
+ReplaceMe,26/02/2022,Muscle Pain,Approve,S0018
+ReplaceMe,21/01/2022,Family Emergency,Approve,S0019
+ReplaceMe,30/08/2023,Muscle Pain,Approve,S0018
+ReplaceMe,25/01/2022,Family Emergency,Reject,S0013
+ReplaceMe,27/01/2024,Dental Emergencies,Approve,S0018
+ReplaceMe,08/01/2023,Disease,Reject,S0001
+ReplaceMe,24/04/2024,Sick,Reject,S0008
+ReplaceMe,04/04/2023,Sick,Reject,S0010
+ReplaceMe,27/10/2022,Death of a loved one,Reject,S0009
+ReplaceMe,14/08/2022,Disease,Approve,S0007
+ReplaceMe,01/02/2023,Disease,Reject,S0020
+ReplaceMe,20/11/2022,Accidents,Reject,S0010
+ReplaceMe,04/01/2022,Muscle Pain,Approve,S0006
+ReplaceMe,05/02/2024,Death of a loved one,Approve,S0014
+ReplaceMe,21/01/2023,Disease,Reject,S0006
+ReplaceMe,07/01/2024,Dental Emergencies,Approve,S0010
+ReplaceMe,18/10/2023,Dental Emergencies,Approve,S0005
+ReplaceMe,24/07/2022,Family Emergency,Reject,S0009
+ReplaceMe,29/01/2024,Dental Emergencies,Approve,S0009
+ReplaceMe,14/08/2022,Muscle Pain,Approve,S0006
+ReplaceMe,03/12/2022,Muscle Pain,Reject,S0005
+ReplaceMe,02/11/2022,Muscle Pain,Approve,S0014
+ReplaceMe,21/09/2022,Accidents,Reject,S0009
+ReplaceMe,09/06/2022,Accidents,Approve,S0020
+ReplaceMe,18/03/2024,Family Emergency,Reject,S0016
+ReplaceMe,17/04/2023,Death of a loved one,Reject,S0011
+ReplaceMe,15/03/2022,Death of a loved one,Reject,S0017
+ReplaceMe,13/08/2024,Dental Emergencies,Approve,S0018
+ReplaceMe,17/04/2024,Sick,Approve,S0016
+ReplaceMe,22/06/2023,Muscle Pain,Reject,S0004
+ReplaceMe,31/03/2022,Muscle Pain,Reject,S0004
+ReplaceMe,25/11/2022,Death of a loved one,Approve,S0001
+ReplaceMe,30/05/2022,Dental Emergencies,Reject,S0017
+ReplaceMe,04/04/2024,Family Emergency,Reject,S0006
+ReplaceMe,22/09/2023,Dental Emergencies,Reject,S0020
+ReplaceMe,18/09/2022,Death of a loved one,Reject,S0007
+ReplaceMe,20/08/2024,Death of a loved one,Reject,S0008
+ReplaceMe,19/06/2022,Accidents,Approve,S0001
+ReplaceMe,06/01/2023,Death of a loved one,Reject,S0001
+ReplaceMe,01/06/2024,Family Emergency,Reject,S0018
+ReplaceMe,02/02/2023,Muscle Pain,Reject,S0012
+ReplaceMe,10/01/2024,Dental Emergencies,Approve,S0003
+ReplaceMe,21/04/2023,Sick,Reject,S0011
+ReplaceMe,02/01/2024,Sick,Approve,S0007
+ReplaceMe,21/08/2023,Death of a loved one,Approve,S0005
+ReplaceMe,27/06/2024,Family Emergency,Approve,S0017
+ReplaceMe,04/08/2024,Dental Emergencies,Reject,S0016
+ReplaceMe,23/03/2022,Muscle Pain,Reject,S0011
+ReplaceMe,28/10/2023,Accidents,Reject,S0007
+ReplaceMe,06/08/2023,Death of a loved one,Approve,S0018
+ReplaceMe,05/06/2024,Muscle Pain,Reject,S0004
+ReplaceMe,18/03/2024,Death of a loved one,Approve,S0016
+ReplaceMe,01/02/2023,Muscle Pain,Reject,S0008
+ReplaceMe,23/09/2022,Muscle Pain,Approve,S0006
+ReplaceMe,16/05/2024,Sick,Approve,S0009
+ReplaceMe,28/12/2022,Death of a loved one,Approve,S0008
+ReplaceMe,02/08/2024,Accidents,Reject,S0002
+ReplaceMe,06/04/2024,Family Emergency,Approve,S0008
+ReplaceMe,14/03/2024,Family Emergency,Approve,S0006
+ReplaceMe,03/09/2023,Death of a loved one,Reject,S0013
+ReplaceMe,27/06/2023,Death of a loved one,Reject,S0011
+ReplaceMe,01/03/2022,Family Emergency,Reject,S0017
+ReplaceMe,25/08/2024,Sick,Reject,S0007
+ReplaceMe,03/09/2022,Sick,Reject,S0018
+ReplaceMe,01/08/2022,Disease,Approve,S0009
+ReplaceMe,08/10/2022,Accidents,Reject,S0009
+ReplaceMe,29/03/2023,Muscle Pain,Approve,S0003
+ReplaceMe,17/11/2023,Sick,Approve,S0004
+ReplaceMe,09/09/2023,Death of a loved one,Reject,S0018
+ReplaceMe,28/02/2022,Accidents,Reject,S0017
+ReplaceMe,26/07/2024,Sick,Reject,S0013
+ReplaceMe,28/01/2024,Disease,Reject,S0015
+ReplaceMe,08/10/2022,Disease,Approve,S0002
+ReplaceMe,12/03/2024,Accidents,Reject,S0005
+ReplaceMe,12/07/2022,Disease,Reject,S0010
+ReplaceMe,29/09/2022,Disease,Reject,S0009
+ReplaceMe,16/04/2022,Family Emergency,Reject,S0002
+ReplaceMe,29/06/2024,Death of a loved one,Reject,S0005
+ReplaceMe,25/07/2022,Accidents,Reject,S0003
+ReplaceMe,25/01/2022,Muscle Pain,Approve,S0004
+ReplaceMe,05/02/2023,Muscle Pain,Approve,S0017
+ReplaceMe,28/01/2024,Sick,Reject,S0014
+ReplaceMe,05/09/2022,Muscle Pain,Approve,S0008
+ReplaceMe,27/05/2022,Dental Emergencies,Reject,S0017
+ReplaceMe,11/11/2022,Disease,Reject,S0018
+ReplaceMe,18/12/2023,Dental Emergencies,Approve,S0014
+ReplaceMe,30/11/2022,Family Emergency,Reject,S0001
+ReplaceMe,28/05/2024,Muscle Pain,Reject,S0015
+ReplaceMe,12/06/2023,Muscle Pain,Reject,S0014
+ReplaceMe,11/04/2023,Death of a loved one,Reject,S0018
+ReplaceMe,12/07/2024,Death of a loved one,Approve,S0010
+ReplaceMe,02/07/2022,Accidents,Approve,S0011
+ReplaceMe,30/05/2022,Family Emergency,Reject,S0012
+ReplaceMe,11/07/2024,Dental Emergencies,Reject,S0010
+ReplaceMe,29/10/2023,Death of a loved one,Reject,S0005
+ReplaceMe,18/02/2023,Sick,Reject,S0018
+ReplaceMe,05/03/2023,Sick,Approve,S0015
+ReplaceMe,27/01/2023,Family Emergency,Reject,S0015
+ReplaceMe,13/03/2024,Accidents,Reject,S0002
+ReplaceMe,16/01/2023,Death of a loved one,Approve,S0011
+ReplaceMe,04/08/2022,Accidents,Reject,S0020
+ReplaceMe,12/05/2023,Accidents,Approve,S0013
+ReplaceMe,10/02/2022,Muscle Pain,Reject,S0010
+ReplaceMe,04/04/2022,Death of a loved one,Reject,S0017
+ReplaceMe,29/07/2023,Sick,Reject,S0003
+ReplaceMe,13/01/2022,Accidents,Approve,S0013

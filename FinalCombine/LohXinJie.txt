@@ -1,0 +1,835 @@
+-- FORMATING 
+SET SERVEROUTPUT ON
+
+ALTER SESSION SET NLS_DATE_FORMAT = 'DD/MM/YYYY';
+ALTER SESSION SET NLS_TIMESTAMP_FORMAT = 'DD/MM/YYYY HH24:MI:SS';
+
+set linesize 250
+set pagesize 100
+
+-- SEQUENCE ====================================================================================================
+
+DROP SEQUENCE leave_seq;
+CREATE SEQUENCE leave_seq
+  MINVALUE 1
+  MAXVALUE 9999
+  START WITH 1
+  INCREMENT BY 1
+  NOCACHE;
+
+DROP SEQUENCE staff_seq;
+CREATE SEQUENCE staff_seq
+  MINVALUE 1
+  MAXVALUE 9999
+  START WITH 1
+  INCREMENT BY 1
+  NOCACHE;
+
+DROP SEQUENCE item_seq;
+CREATE SEQUENCE item_seq
+  MINVALUE 1
+  MAXVALUE 9999
+  START WITH 1
+  INCREMENT BY 1
+  NOCACHE;
+
+-- INDEX =======================================================================================================
+
+DROP INDEX uLeaveStatus;
+DROP INDEX uCategory;
+
+CREATE INDEX uLeaveStatus ON Leave (UPPER(LeaveStatus));
+
+CREATE INDEX uCategory ON Item (UPPER(Category));
+
+-- QUERY 1 - staffMonthlyWorkingSchedule ========================================================================
+
+CREATE OR REPLACE VIEW staffMonthlyWorkingSchedule AS 
+SELECT s.StaffID, 
+    f.FlightScheduleID, 
+    f.DepartDateTime - INTERVAL '30' minute AS "CheckIn DateTime", 
+    f.ArriveDateTime + INTERVAL '1' hour AS "Expected End DateTime",
+    f.DepartDateTime AS "Flight Depart", 
+    f.ArriveDateTime AS "Flight Arrive",
+    EXTRACT(HOUR FROM ((f.ArriveDateTime + INTERVAL '1' HOUR) - (f.DepartDateTime - INTERVAL '30' MINUTE))) || ' hrs ' || EXTRACT(MINUTE FROM ((f.ArriveDateTime + INTERVAL '1' HOUR) - (f.DepartDateTime - INTERVAL '30' MINUTE))) || ' min' AS "Duration Hours"
+FROM FlightSchedule f, StaffSchedule ss, Staff s
+WHERE ss.FlightScheduleID = f.FlightScheduleID AND
+        ss.StaffID = s.StaffID AND
+        TRUNC(f.DepartDateTime, 'MONTH') = TRUNC(SYSDATE, 'MONTH') AND
+        TRUNC(f.DepartDateTime, 'YEAR') = TRUNC(SYSDATE, 'YEAR')
+ORDER BY s.StaffID, f.DepartDateTime
+WITH CHECK OPTION CONSTRAINT chk_monthlyWorkingSchedule;
+
+-- EXEC --
+COLUMN 'CheckIn DateTime' 	    FORMAT A20 	
+COLUMN 'Expected End DateTime' 	FORMAT A20 	
+COLUMN 'Flight Depart' 	        FORMAT A20 	
+COLUMN 'Flight Arrive' 	        FORMAT A20 	
+COLUMN 'Duration Hours'         FORMAT A20
+
+TTITLE LEFT 'STAFF MONTHLY WORKING SCHEDULE';
+
+BREAK ON StaffID;
+
+SELECT * 
+FROM staffMonthlyWorkingSchedule;
+
+CLEAR COLUMNS
+CLEAR BREAKS
+TTITLE OFF
+
+-- QUERY 2 - conflictSchedule ==========================================================================
+
+CREATE OR REPLACE VIEW conflictSchedule AS 
+SELECT f1.FlightScheduleID, 
+        f1.DepartDateTime, 
+        f1.ArriveDateTime,
+        (SELECT COUNT(*)
+                FROM StaffSchedule s3
+                WHERE s3.FlightScheduleID = f1.FlightScheduleID) -
+        (SELECT COUNT(s2.StaffID)
+                FROM FlightSchedule f2, StaffSchedule ss2, Staff s2, Leave l2
+                WHERE ss2.FlightScheduleID = f2.FlightScheduleID AND
+                        ss2.StaffID = s2.StaffID AND
+                        s2.StaffID = l2.StaffID AND
+                        TRUNC(l2.LeaveDate) = TRUNC(f2.DepartDateTime) AND
+                        UPPER(l2.LeaveStatus) = 'APPROVE' AND
+                        f2.FlightScheduleID = f1.FlightScheduleID) AS "Available",  
+        (SELECT COUNT(s2.StaffID)
+                FROM FlightSchedule f2, StaffSchedule ss2, Staff s2, Leave l2
+                WHERE ss2.FlightScheduleID = f2.FlightScheduleID AND
+                        ss2.StaffID = s2.StaffID AND
+                        s2.StaffID = l2.StaffID AND
+                        TRUNC(l2.LeaveDate) = TRUNC(f2.DepartDateTime) AND
+                        UPPER(l2.LeaveStatus) = 'APPROVE' AND
+                        f2.FlightScheduleID = f1.FlightScheduleID) AS "NotAvailable"
+FROM FlightSchedule f1, StaffSchedule ss1, Staff s1, Leave l1
+WHERE ss1.FlightScheduleID = f1.FlightScheduleID AND
+        ss1.StaffID = s1.StaffID AND
+        s1.StaffID = l1.StaffID AND
+        TRUNC(l1.LeaveDate) = TRUNC(f1.DepartDateTime) AND
+        NOT UPPER(l1.LeaveStatus) = 'REJECT'
+GROUP BY f1.FlightScheduleID, f1.DepartDateTime, f1.ArriveDateTime
+ORDER BY f1.FlightScheduleID
+WITH CHECK OPTION CONSTRAINT chk_conflictSchedule;
+
+-- EXEC --
+
+-- Insert Conflict Data for testing 
+-- FS0244
+INSERT INTO Leave (LeaveID, LeaveDate, LeaveReason, LeaveStatus, StaffID) VALUES ('L' || TO_CHAR(leave_seq.nextval, 'FM0000'), '26/08/2025', 'Family Emergency', 'Approve', 'S0007');
+INSERT INTO Leave (LeaveID, LeaveDate, LeaveReason, LeaveStatus, StaffID) VALUES ('L' || TO_CHAR(leave_seq.nextval, 'FM0000'), '26/08/2025', 'Family Emergency', 'Approve', 'S0001');
+
+-- FS0243
+INSERT INTO Leave (LeaveID, LeaveDate, LeaveReason, LeaveStatus, StaffID) VALUES ('L' || TO_CHAR(leave_seq.nextval, 'FM0000'), '24/05/2025', 'Family Emergency', 'Approve', 'S0002');
+
+-- FS0241
+INSERT INTO Leave (LeaveID, LeaveDate, LeaveReason, LeaveStatus, StaffID) VALUES ('L' || TO_CHAR(leave_seq.nextval, 'FM0000'), '23/05/2025', 'Family Emergency', 'Approve', 'S0012');
+INSERT INTO Leave (LeaveID, LeaveDate, LeaveReason, LeaveStatus, StaffID) VALUES ('L' || TO_CHAR(leave_seq.nextval, 'FM0000'), '23/05/2025', 'Family Emergency', 'Approve', 'S0013');
+
+COLUMN DepartDateTime           FORMAT A20 	
+COLUMN ArriveDateTime           FORMAT A20 	
+COLUMN FlightScheduleID         FORMAT A20 	
+
+TTITLE LEFT 'FLIGHT SCHEDULE THAT HAVE STAFF CANNOT ATTEND';
+
+BREAK ON StaffID;
+
+SELECT * 
+FROM conflictSchedule;
+
+CLEAR COLUMNS
+CLEAR BREAKS
+TTITLE OFF
+
+
+-- PROCEDURE 1 - availableStaff ======================================
+CREATE OR REPLACE PROCEDURE availableStaff(targetDate IN DATE, maxflyTime IN NUMBER) IS
+
+ttlNumberOfStaff    NUMBER(2);
+sID                 Staff.StaffID%TYPE;
+headerOn            NUMBER(1);
+
+-- get list of staff FLY TIME which doesnot exceed maxflyTime
+CURSOR flyTimeCursor IS
+    SELECT s.StaffID, COUNT(f.FlightScheduleID) AS ttlFlight, SUM(f.FlightDuration) AS ttlFlyTime
+    FROM FlightSchedule f, StaffSchedule ss, Staff s
+    WHERE ss.FlightScheduleID = f.FlightScheduleID AND
+            ss.StaffID = s.StaffID AND
+            TRUNC(f.DepartDateTime, 'MONTH') = TRUNC(to_date(targetDate, 'DD/MM/YYYY'), 'MONTH') AND
+            TRUNC(f.DepartDateTime, 'YEAR') = TRUNC(to_date(targetDate, 'DD/MM/YYYY'), 'YEAR') 
+    GROUP BY s.StaffID
+    HAVING SUM(f.FlightDuration) < maxflyTime
+    ORDER BY s.StaffID;
+
+-- get who have take leave at the day
+CURSOR staffLeaveCursor IS
+    SELECT *
+    FROM Leave
+    WHERE StaffID = sID AND
+            TRUNC(LeaveDate) = TRUNC(targetDate) AND
+            UPPER(LeaveStatus) != 'REJECT';
+
+flyTimeRec flyTimeCursor%ROWTYPE;
+leaveRec staffLeaveCursor%ROWTYPE;
+
+BEGIN
+    -- TITLE
+    DBMS_OUTPUT.PUT_LINE(RPAD('=', 120, '='));
+    DBMS_OUTPUT.PUT_LINE(CHR(10));
+    DBMS_OUTPUT.PUT_LINE('STAFF AVAILABLE AT DATE - ' || TO_CHAR(TRUNC(targetDate), 'DD/MM/YYYY'));
+    DBMS_OUTPUT.PUT_LINE(CHR(10));
+    DBMS_OUTPUT.PUT_LINE(RPAD('=', 120, '='));
+    
+    ttlNumberOfStaff := 0;
+    headerOn := 0;
+
+    OPEN flyTimeCursor;
+    LOOP
+    FETCH flyTimeCursor INTO flyTimeRec;
+
+    IF (flyTimeCursor%ROWCOUNT = 0) THEN 
+        DBMS_OUTPUT.PUT_LINE('Doesnot have available staff, all the staff have more than equals ' || maxflyTime || ' hours fly time');
+    END IF;
+    EXIT WHEN flyTimeCursor%NOTFOUND;
+
+    -- GET STAFFID
+    sID := flyTimeRec.StaffID;
+
+    IF (headerOn = 0) THEN
+        -- HEADING
+        DBMS_OUTPUT.PUT_LINE(CHR(10));
+        DBMS_OUTPUT.PUT_LINE('ALL THE RESULT GENERATE IS DEPENDS ON VALUE BELOW');
+        DBMS_OUTPUT.PUT_LINE('MONTH        : ' || TO_CHAR(TRUNC(targetDate), 'DD/MM/YYYY'));
+        DBMS_OUTPUT.PUT_LINE('MAX FLY TIME : ' || maxflyTime);
+        DBMS_OUTPUT.PUT_LINE(CHR(10));
+
+        DBMS_OUTPUT.PUT_LINE(RPAD('Staff ID', 10, ' ') || ' ' ||
+                    RPAD('Total Schedule Attend', 40, ' ') || ' ' ||
+                    RPAD('Total Fly Time', 10, ' ') || ' ' ||
+                    RPAD('Fly Time Left', 15, ' '));
+        
+        DBMS_OUTPUT.PUT_LINE(LPAD('=', 120, '='));
+        headerOn := 1;
+    END IF;
+
+        -- nested loop, GET STAFFID
+        OPEN staffLeaveCursor;
+        LOOP
+        FETCH staffLeaveCursor INTO leaveRec; 
+
+        -- check exist in cursor 
+        IF (staffLeaveCursor%ROWCOUNT = 0) THEN 
+            -- HEADING
+            DBMS_OUTPUT.PUT_LINE(RPAD(sID, 10, ' ') || ' ' ||
+                        RPAD(flyTimeRec.ttlFlight, 40, ' ') || ' ' ||
+                        RPAD(flyTimeRec.ttlFlyTime, 10, ' ') || ' ' ||
+                        RPAD((maxflyTime - flyTimeRec.ttlFlyTime), 15, ' '));
+            
+            ttlNumberOfStaff := ttlNumberOfStaff + 1;
+        END IF;
+
+        EXIT WHEN staffLeaveCursor%NOTFOUND;
+        END LOOP;
+        CLOSE staffLeaveCursor;
+    END LOOP;
+
+    DBMS_OUTPUT.PUT_LINE(CHR(10));
+    DBMS_OUTPUT.PUT_LINE('Conclusion : ');
+    DBMS_OUTPUT.PUT_LINE('Total Number of Staff Available : ' || ttlNumberOfStaff);
+
+    CLOSE flyTimeCursor;
+
+END;
+/
+
+-- EXEC --
+
+-- will have 17 record because 2 exist flytime and S0002 is on leave
+EXEC availableStaff('24/05/2025', 30);
+
+-- try change S0002 leaveStatus to reject 
+UPDATE Leave
+SET LeaveStatus = 'Reject'
+WHERE StaffID = 'S0002';
+
+-- now S002 will exist in list 
+EXEC availableStaff('24/05/2025', 30);
+
+-- PROCEDURE 2 - staffServe ======================================
+
+CREATE OR REPLACE PROCEDURE staffServe(pID IN VARCHAR2, bID IN VARCHAR2, wID IN NUMBER) IS
+
+bExist          NUMBER(1);
+fID             FlightSchedule.FlightScheduleID%TYPE;
+available       NUMBER(2);
+notAvailable    NUMBER(2);
+
+-- get the Get list of staff in duty 
+-- 0 = no leave
+-- 1 = leave
+CURSOR staffCursor IS
+    SELECT b.FlightScheduleID, f.DepartDateTime, f.ArriveDateTime, s.*,
+            (SELECT (CASE WHEN COUNT(*) = 0 THEN 0 ELSE 1 END)
+                FROM Leave l
+                WHERE l.StaffID = s.StaffID AND
+                        UPPER(l.LeaveStatus) = 'APPROVE' AND
+                        TRUNC(l.LeaveDate) = TRUNC(f.DepartDateTime)) AS HaveLeave
+    FROM BookingDetail b, FlightSchedule f, StaffSchedule ss, Staff s
+    WHERE b.PassengerID = pID AND b.BookingID = bID AND b.WayID = wID AND
+            f.FlightScheduleID = b.FlightScheduleID AND
+            f.FlightScheduleID = ss.FlightScheduleID AND
+            ss.StaffID = s.StaffID
+    ORDER BY HaveLeave;
+
+staffRec staffCursor%ROWTYPE;
+
+BEGIN
+
+    -- chk doesnot exist ( BOOKINGDETAIL )
+    -- count either 0 or 1
+    SELECT COUNT(*), FlightScheduleID INTO bExist, fID
+    FROM BookingDetail
+    WHERE PassengerID = pID AND BookingID = bID AND WayID = wID
+    GROUP BY FlightScheduleID;
+
+    IF (bExist = 0) THEN
+        -- booking no exist 
+        DBMS_OUTPUT.PUT_LINE('The following booking detail doesnot exist : ');
+        DBMS_OUTPUT.PUT_LINE('BOOKING ID   : ' || bID);
+        DBMS_OUTPUT.PUT_LINE('PASSENGER ID : ' || pID);
+        DBMS_OUTPUT.PUT_LINE('WAY ID       : ' || wID);
+    ELSE 
+        -- TITLE
+        DBMS_OUTPUT.PUT_LINE(RPAD('=', 120, '='));
+        DBMS_OUTPUT.PUT_LINE(CHR(10));
+        DBMS_OUTPUT.PUT_LINE('STAFF INCHARGE FLIGHTSCHEDULE - ' || fID);
+        DBMS_OUTPUT.PUT_LINE(CHR(10));
+        DBMS_OUTPUT.PUT_LINE(RPAD('=', 120, '='));
+
+        available := 0;
+        notAvailable := 0;
+
+        OPEN staffCursor;
+        LOOP
+        FETCH staffCursor INTO staffRec;
+
+        -- checking and exit loop 
+        IF (staffCursor%ROWCOUNT = 0) THEN
+            DBMS_OUTPUT.PUT_LINE('Doesnot have staff be assign to this Flight Schedule');
+            DBMS_OUTPUT.PUT_LINE('Flight Schedule ID : ' || staffRec.FlightScheduleID);
+        END IF;
+        EXIT WHEN staffCursor%NOTFOUND;
+
+        -- EXIST, start display 
+        -- display no leave first 
+        IF (staffRec.HaveLeave = 0) THEN
+            IF (available = 0) THEN
+                -- HEADING ( available )
+                DBMS_OUTPUT.PUT_LINE(CHR(10));
+                DBMS_OUTPUT.PUT_LINE('STAFF ON THE POST : ');
+                DBMS_OUTPUT.PUT_LINE(RPAD('STAFF ID', 10, ' ') || ' ' ||
+                            RPAD('STAFF NAME', 50, ' ') || ' ' ||
+                            RPAD('STAFF IC', 12, ' ') || ' ' ||
+                            RPAD('STAFF POSITION', 50, ' '));
+                DBMS_OUTPUT.PUT_LINE(LPAD('=', 120, '='));
+            END IF;
+
+            DBMS_OUTPUT.PUT_LINE(RPAD(staffRec.StaffID, 10, ' ') || ' ' ||
+                            RPAD(staffRec.StaffName, 50, ' ') || ' ' ||
+                            RPAD(staffRec.StaffIC, 12, ' ') || ' ' ||
+                            RPAD(staffRec.StaffPosition, 50, ' '));
+            
+            available := available + 1;
+        ELSE 
+            IF (notAvailable = 0) THEN
+                -- HEADING ( notAvailable )
+                DBMS_OUTPUT.PUT_LINE(CHR(10));
+                DBMS_OUTPUT.PUT_LINE('STAFF ON LEAVE : ');
+                DBMS_OUTPUT.PUT_LINE(RPAD('STAFF ID', 10, ' ') || ' ' ||
+                            RPAD('STAFF NAME', 50, ' ') || ' ' ||
+                            RPAD('STAFF IC', 12, ' ') || ' ' ||
+                            RPAD('STAFF POSITION', 50, ' '));
+                DBMS_OUTPUT.PUT_LINE(LPAD('=', 120, '='));
+            END IF;
+
+            DBMS_OUTPUT.PUT_LINE(RPAD(staffRec.StaffID, 10, ' ') || ' ' ||
+                            RPAD(staffRec.StaffName, 50, ' ') || ' ' ||
+                            RPAD(staffRec.StaffIC, 12, ' ') || ' ' ||
+                            RPAD(staffRec.StaffPosition, 50, ' '));
+            
+            notAvailable := notAvailable + 1;
+        END IF;
+
+        END LOOP;
+        
+        DBMS_OUTPUT.PUT_LINE(CHR(10));
+        DBMS_OUTPUT.PUT_LINE('Conclusion : ');
+        DBMS_OUTPUT.PUT_LINE('Total Number of Staff Assign   : ' || (available + notAvailable));
+        DBMS_OUTPUT.PUT_LINE('Total Number of Staff On Post  : ' || available);
+        DBMS_OUTPUT.PUT_LINE('Total Number of Staff On Leave : ' || notAvailable);
+
+        CLOSE staffCursor;
+
+    END IF;
+END;
+/
+
+-- EXEC --
+
+-- make S0002 all Leave become approve  
+UPDATE Leave
+SET LeaveStatus = 'Approve'
+WHERE StaffID = 'S0002';
+
+EXEC staffServe('P0007', 'B0105', 2);
+
+--
+
+-- Trigger 1 - trg_newPurchase ===================================================
+
+CREATE OR REPLACE TRIGGER trg_newPurchase
+BEFORE INSERT OR UPDATE OR DELETE ON Purchase
+FOR EACH ROW 
+
+DECLARE
+price Item.SellingPrice%TYPE;
+oldItemQtyInStock Item.QuantityInStock%TYPE;
+newItemQtyInStock Item.QuantityInStock%TYPE;
+
+BEGIN 
+
+CASE 
+    WHEN INSERTING THEN 
+        -- SELECT item 
+        SELECT SellingPrice, QuantityInStock INTO price, newItemQtyInStock
+        FROM Item 
+        WHERE ItemID = :NEW.ItemID; 
+
+        IF (:NEW.Quantity <= newItemQtyInStock) THEN
+            -- still have stock
+            -- get price  
+            -- calculate total`
+            :NEW.ItemBuyPrice := price;
+            :NEW.TotalPrice := price * :NEW.Quantity;
+            newItemQtyInStock := newItemQtyInStock - :NEW.Quantity;
+
+            -- update new QuantityInStock
+            UPDATE Item 
+            SET QuantityInStock = newItemQtyInStock
+            WHERE Item.ItemID = :NEW.ItemID;
+        ELSE 
+            RAISE_APPLICATION_ERROR(-20000, 'The amount of Item request is more than quantity in stock. Item ' || :NEW.ItemID ||  ' Current quantity in stock is : ' || newItemQtyInStock || '. The amount you request is : ' || :NEW.Quantity);
+        END IF;
+    WHEN UPDATING THEN 
+        -- check is same item or not 
+        IF (:NEW.ItemID = :OLD.ItemID) THEN 
+            -- GET ITEM QuantityInStock
+            SELECT QuantityInStock INTO oldItemQtyInStock
+            FROM Item 
+            WHERE ItemID = :OLD.ItemID; 
+
+            -- return back the old quantity 
+            oldItemQtyInStock := oldItemQtyInStock + :OLD.Quantity;
+
+            -- check qty allow ?
+            IF (:NEW.Quantity <= oldItemQtyInStock) THEN
+                -- if allow
+                -- recalculate price 
+                :NEW.TotalPrice := :OLD.ItemBuyPrice * :NEW.Quantity;
+
+                -- update QuantityInStock ( Item )
+                oldItemQtyInStock := oldItemQtyInStock - :NEW.Quantity;
+
+                UPDATE Item 
+                SET QuantityInStock = oldItemQtyInStock
+                WHERE Item.ItemID = :NEW.ItemID;
+            ELSE
+                -- OVER LIMIT
+                RAISE_APPLICATION_ERROR(-20000, 'The amount request to update is exceed the amount that exist in stock. Amount request to adding : ' || :NEW.Quantity - :OLD.Quantity || ' The amount currently exist is : ' || oldItemQtyInStock - :OLD.Quantity);
+            END IF;
+        ELSE 
+            -- NOT SAME 
+            -- GET NEW ITEM 
+            SELECT SellingPrice, QuantityInStock INTO price, newItemQtyInStock
+            FROM Item
+            WHERE ItemID = :NEW.ItemID;
+
+            IF (:NEW.Quantity <= newItemQtyInStock) THEN
+                -- available 
+                :NEW.ItemBuyPrice := price;
+                :NEW.TotalPrice := price * :NEW.Quantity;
+                
+                -- return value to old 
+                SELECT QuantityInStock INTO oldItemQtyInStock
+                FROM Item 
+                WHERE ItemID = :OLD.ItemID;
+
+                oldItemQtyInStock := oldItemQtyInStock + :OLD.Quantity;
+
+                UPDATE Item
+                SET QuantityInStock = oldItemQtyInStock
+                WHERE ItemID = :OLD.ItemID;
+
+                -- update new item 
+                newItemQtyInStock := newItemQtyInStock - :NEW.Quantity;
+
+                UPDATE Item
+                SET QuantityInStock = newItemQtyInStock
+                WHERE ItemID = :NEW.ItemID;
+            ELSE 
+                -- NEW OVERLIMIT 
+                RAISE_APPLICATION_ERROR(-20000, 'The amount of Item request is more than quantity in stock. Item ' || :NEW.ItemID ||  ' Current quantity in stock is : ' || newItemQtyInStock || '. The amount you request is : ' || :NEW.Quantity);
+            END IF;
+        END IF;
+    WHEN DELETING THEN
+        SELECT QuantityInStock INTO oldItemQtyInStock
+        FROM Item 
+        WHERE ItemID = :OLD.ItemID;
+
+        oldItemQtyInStock := oldItemQtyInStock + :OLD.Quantity;
+
+        UPDATE Item
+        SET QuantityInStock = oldItemQtyInStock
+        WHERE ItemID = :OLD.ItemID;
+END CASE;
+END;
+/
+
+-- EXEC --
+
+-- Insert test 
+INSERT INTO Purchase (PassengerID, ItemID, Quantity, ItemBuyPrice, TotalPrice, PurchaseDate) VALUES ('P0003', 'I0020', '8', NULL, NULL, '9/7/2024');
+
+-- Update test ( same item, decrease number of quantity )
+UPDATE Purchase
+SET Quantity = 5
+WHERE PassengerID = 'P0003' AND 
+        ItemID = 'I0016' AND
+        PurchaseDate = '04/07/2024';
+
+-- Update test ( different item I0016 to I0010, increase number of quantity )
+UPDATE Purchase
+SET Quantity = 60,
+    ItemID = 'I0010'
+WHERE PassengerID = 'P0003' AND 
+        ItemID = 'I0016' AND
+        PurchaseDate = '04/07/2024';
+
+-- Delete test
+DELETE FROM PURCHASE 
+WHERE PassengerID = 'P0003' AND
+        ItemID = 'I0010' AND
+        PurchaseDate = '04/07/2024';
+
+
+-- Trigger 2 - trg_staffSchedule ==================================================
+
+CREATE OR REPLACE TRIGGER trg_staffSchedule 
+BEFORE INSERT OR UPDATE ON STAFFSCHEDULE
+FOR EACH ROW
+
+DECLARE
+
+startDate FlightSchedule.DepartDateTime%TYPE;
+endDate FlightSchedule.ArriveDateTime%TYPE;
+leaveNo NUMBER(2);
+
+BEGIN
+
+-- get the date duration 
+SELECT TRUNC(DepartDateTime), TRUNC(ArriveDateTime) INTO startDate, endDate
+FROM FlightSchedule
+WHERE FlightScheduleID = :NEW.FlightScheduleID;
+
+SELECT COUNT(*) INTO leaveNo
+FROM Leave
+WHERE StaffID = :NEW.StaffID AND
+        (LeaveDate BETWEEN startDate AND endDate) AND
+        (UPPER(LeaveStatus) = 'PENDING' OR UPPER(LeaveStatus) = 'APPROVE');
+
+IF (leaveNo > 0) THEN 
+        -- have take leave cannot on duty 
+        RAISE_APPLICATION_ERROR(-20000, 'Staff ' || :NEW.StaffID || ' have leave is on pending or already been approved. You are not able to adding he/she into this schedule');
+END IF;
+
+END;
+/
+
+-- EXEC --
+
+UPDATE Leave
+SET LeaveStatus = 'Approve', LeaveDate = '09/01/2023'
+WHERE LeaveID = 'L0001';
+
+-- STAFFSCHEDULE FOR TESTING CONFLICT ( WILL NOT ABLE TO BE ADDED )
+INSERT INTO StaffSchedule (FlightScheduleID, StaffID, WorkingHours, CheckIn, CheckOut) 
+        VALUES ('FS0001', 'S0005', '6', '09/01/2025 19:25:00', '09/01/2025 01:25:00');
+
+-- 
+
+-- Report 1 - passengerPreference =================================================
+
+CREATE OR REPLACE PROCEDURE passengerPreference (fID IN VARCHAR2) IS
+
+pID         Passenger.PassengerID%TYPE;
+control     NUMBER(1);
+ttlRecord   NUMBER(2);
+
+CURSOR passengerCursor IS 
+    SELECT p.* 
+    FROM BookingDetail b, FlightSchedule f, Passenger p
+    WHERE b.PassengerID = p.PassengerID AND
+            b.FlightScheduleID = f.FlightScheduleID AND
+            f.FlightScheduleID = fID;
+
+-- most rencently buy 
+CURSOR rencentCursor IS 
+    SELECT i.Category, COUNT(i.ItemID) AS NoOfPurchase, SUM(p.Quantity) AS TtlQtyBuy, SUM(p.Quantity * p.ItemBuyPrice) AS TtlPricePaid
+    FROM Purchase p, Item i
+    WHERE p.ItemID = i.ItemID AND
+            p.PassengerID = pID 
+    GROUP BY i.Category
+    ORDER BY NoOfPurchase DESC;
+
+passengerRec passengerCursor%ROWTYPE;
+rencentRec rencentCursor%ROWTYPE;
+
+BEGIN
+    -- TITLE
+    DBMS_OUTPUT.PUT_LINE(RPAD('=', 170, '='));
+    DBMS_OUTPUT.PUT_LINE(CHR(10));
+    DBMS_OUTPUT.PUT_LINE('PASSENGER PREFERENCE FOR FLIGHT SCHEDULE - ' || fID);
+    DBMS_OUTPUT.PUT_LINE(CHR(10));
+    DBMS_OUTPUT.PUT_LINE(RPAD('=', 170, '='));
+
+    DBMS_OUTPUT.PUT_LINE(RPAD('Passenger ID', 10, ' ') || ' ' ||
+                RPAD('Passenger Name', 55, ' ') || ' ' ||
+                RPAD('Passenger Gender', 20, ' ') || ' ' ||
+                RPAD('Preference Category', 20, ' ')  || ' ' ||
+                RPAD('No of Purchase', 15, ' ')  || ' ' ||
+                RPAD('Total Quantity Buy', 20, ' ')  || ' ' ||
+                RPAD('Total Price Paid', 20, ' '));
+    DBMS_OUTPUT.PUT_LINE(RPAD('=', 170, '='));
+
+    ttlRecord := 0;
+
+    OPEN passengerCursor;
+    LOOP
+    FETCH passengerCursor INTO passengerRec;
+    IF (passengerCursor%ROWCOUNT = 0) THEN 
+        DBMS_OUTPUT.PUT_LINE('This Flight Schedule doesnot have any passenger yet');
+    END IF;
+    EXIT WHEN passengerCursor%NOTFOUND;
+
+        pID := passengerRec.PassengerID;
+        control := 0;
+
+        OPEN rencentCursor;
+        LOOP
+        FETCH rencentCursor INTO rencentRec;
+        IF (rencentCursor%ROWCOUNT = 0) THEN 
+            DBMS_OUTPUT.PUT_LINE(RPAD(passengerRec.PassengerID, 10, ' ') || ' ' ||
+                        RPAD(passengerRec.PassengerName, 55, ' ') || ' ' ||
+                        RPAD(getGender(passengerRec.PassengerGender), 20, ' ') || ' ' ||
+                        RPAD('This passenger doesnot buy any item before', 75, ' '));
+        END IF;
+        EXIT WHEN rencentCursor%NOTFOUND;
+
+        IF (control = 0) THEN
+            DBMS_OUTPUT.PUT_LINE(RPAD(passengerRec.PassengerID, 10, ' ') || ' ' ||
+                        RPAD(passengerRec.PassengerName, 55, ' ') || ' ' ||
+                        RPAD(getGender(passengerRec.PassengerGender), 20, ' ') || ' ' ||
+                        RPAD(rencentRec.Category, 20, ' ')  || ' ' ||
+                        RPAD(rencentRec.NoOfPurchase, 15, ' ')  || ' ' ||
+                        RPAD(rencentRec.TtlQtyBuy, 20, ' ')  || ' ' ||
+                        RPAD(getPriceFormat(rencentRec.TtlPricePaid), 20, ' '));
+            control := control + 1;
+        END IF;
+
+        END LOOP;
+        CLOSE rencentCursor;
+
+        ttlRecord := ttlRecord + 1;
+    END LOOP;
+
+    DBMS_OUTPUT.PUT_LINE(RPAD('=', 170, '='));
+    DBMS_OUTPUT.PUT_LINE(CHR(10));
+    DBMS_OUTPUT.PUT_LINE('TOTAL NO OF PASSENGER IN THIS FLIGHT SCHEDULE - ' || fID || ' IS ' || ttlRecord);
+    DBMS_OUTPUT.PUT_LINE(CHR(10));
+    DBMS_OUTPUT.PUT_LINE(RPAD('=', 170, '='));
+
+    CLOSE passengerCursor;
+
+END;
+/
+
+-- EXEC -- 
+
+EXEC passengerPreference('FS0237');
+
+-- try if no purchase record 
+DELETE FROM Purchase
+WHERE PassengerID = 'P0001';
+
+EXEC passengerPreference('FS0237');
+
+-- Report 2 - bestSaleCategory =================================================
+
+CREATE OR REPLACE PROCEDURE bestSaleCategory (targetDate IN DATE) IS
+
+cat                 Item.Category%TYPE;
+qtyOfItem           NUMBER(5);
+qtyOfCat            NUMBER(5);
+ttlCatPrice         NUMBER(11,2);
+ttlCatQty           NUMBER(5);
+
+-- CALCULATE PRICE FOR CATEGORY GET 
+catTtlPrice         NUMBER(11,2);
+catTtlSold          NUMBER(5);
+
+-- GET WHICH ITEM IS HIGHERST PRICE AND SALES IN CATEGORY
+priceInCatID        Item.ItemID%TYPE;
+priceInCat          NUMBER(11,2);
+
+qtyInCatID          Item.ItemID%TYPE;
+qtyInCat            NUMBER(5);
+
+-- GET WHICH CATEGORY IS HIGHERST PRICE AND SALES IN OVERALL
+priceInOverallCat   Item.Category%TYPE;
+priceInOverall      NUMBER(11,2);
+
+qtyInOverallCat     Item.Category%TYPE;
+qtyInOverall        NUMBER(5);
+
+-- get category
+CURSOR categoryCursor IS
+    SELECT DISTINCT Category
+    FROM Item;
+
+-- get bestsale
+CURSOR bestSaleCursor IS
+    SELECT i.ItemID, i.ItemName, SUM(p.Quantity) AS ItemAmountSold, SUM(p.ItemBuyPrice * p.Quantity) AS ItemTotalPrice
+    FROM Item i, Purchase p
+    WHERE p.ItemID = i.ItemID AND
+            TRUNC(p.PurchaseDate, 'YEAR') = TRUNC(to_date(targetDate, 'DD/MM/YYYY'), 'YEAR') AND
+            UPPER(i.Category) = UPPER(cat)
+    GROUP BY i.ItemID, i.ItemName
+    ORDER BY ItemAmountSold DESC, i.ItemID;
+
+bestRec bestSaleCursor%ROWTYPE;
+
+BEGIN
+    -- TITLE
+    DBMS_OUTPUT.PUT_LINE(RPAD('=', 120, '='));
+    DBMS_OUTPUT.PUT_LINE(CHR(10));
+    DBMS_OUTPUT.PUT_LINE('BEST SALES CATEGORY OF ITEM IN ' || TO_CHAR(TRUNC(targetDate, 'MONTH'), 'MONTH') || ' ' || TRUNC(targetDate, 'YEAR'));
+    DBMS_OUTPUT.PUT_LINE(CHR(10));
+    DBMS_OUTPUT.PUT_LINE(RPAD('=', 120, '='));
+
+    qtyOfCat := 0;
+
+    OPEN categoryCursor;
+    LOOP
+    FETCH categoryCursor INTO cat;
+    IF (categoryCursor%ROWCOUNT = 0) THEN 
+        DBMS_OUTPUT.PUT_LINE('Doesnot have item exist in record');
+    END IF;
+    EXIT WHEN categoryCursor%NOTFOUND;
+
+        DBMS_OUTPUT.PUT_LINE(CHR(10));
+        DBMS_OUTPUT.PUT_LINE('CATEGORY : ' || cat);
+        DBMS_OUTPUT.PUT_LINE(RPAD('-', 120, '-'));
+
+        DBMS_OUTPUT.PUT_LINE(RPAD('Item ID', 10, ' ') || ' ' ||
+                    RPAD('Item Name', 35, ' ') || ' ' ||
+                    RPAD('Total Quantity Sold', 15, ' ') || ' ' ||
+                    RPAD('Total Price Sold', 20, ' '));
+        DBMS_OUTPUT.PUT_LINE(RPAD('-', 120, '-'));
+
+        qtyOfItem := 0;
+        ttlCatPrice := 0;
+        ttlCatQty := 0;
+
+        OPEN bestSaleCursor;
+        LOOP
+        FETCH bestSaleCursor INTO bestRec;
+        -- IF (bestSaleCursor%ROWCOUNT = 0) THEN 
+        --     DBMS_OUTPUT.PUT_LINE('Doesnot have item exist in record');
+        -- END IF;
+        EXIT WHEN bestSaleCursor%NOTFOUND;
+
+            IF (qtyOfItem = 0) THEN
+                qtyInCatID := bestRec.ItemID;
+                qtyInCat := bestRec.ItemAmountSold;
+
+                -- init
+                priceInCatID := bestRec.ItemID;
+                priceInCat := bestRec.ItemTotalPrice;
+            END IF;
+
+            -- already have data
+            IF (qtyOfItem > 0 AND priceInCat < bestRec.ItemTotalPrice) THEN
+                priceInCatID := bestRec.ItemID;
+                priceInCat := bestRec.ItemTotalPrice;
+            END IF;
+
+            DBMS_OUTPUT.PUT_LINE(RPAD(bestRec.ItemID, 10, ' ') || ' ' ||
+                        RPAD(bestRec.ItemName, 35, ' ') || ' ' ||
+                        RPAD(bestRec.ItemAmountSold, 15, ' ') || ' ' ||
+                        RPAD(getPriceFormat(bestRec.ItemTotalPrice), 20, ' '));
+            
+            qtyOfItem := qtyOfItem + 1;
+            ttlCatPrice := ttlCatPrice + bestRec.ItemTotalPrice;
+            ttlCatQty := ttlCatQty + bestRec.ItemAmountSold;
+
+        END LOOP;
+
+        DBMS_OUTPUT.PUT_LINE(RPAD('-', 120, '-'));
+        DBMS_OUTPUT.PUT_LINE('THE ITEM THAT EARN THE HIGHEST PRICE IN THIS CATEGORY IS : ITEM - ' || 
+                                priceInCatID || ' [' || getPriceFormat(priceInCat) || '] ');
+        DBMS_OUTPUT.PUT_LINE('THE ITEM THAT HAVE MOST PEOPLE BUY IN THIS CATEGORY IS   : ITEM - ' || qtyInCatID || ' [' || TO_CHAR(qtyInCat, '99999') || '] ');
+
+        DBMS_OUTPUT.PUT_LINE(CHR(10));
+
+        DBMS_OUTPUT.PUT_LINE('THE TOTAL PRICE THIS CATEGORY GET IS              : ' || getPriceFormat(ttlCatPrice));
+        DBMS_OUTPUT.PUT_LINE('THE TOTAL QUANTITY OF ITEM THIS CATEGORY SOLD IS  : ' || TO_CHAR(ttlCatQty, '99999'));
+
+        DBMS_OUTPUT.PUT_LINE(RPAD('-', 120, '-'));
+
+        -- init
+        IF (qtyOfCat = 0) THEN
+            priceInOverallCat := cat;
+            priceInOverall := ttlCatPrice;
+
+            qtyInOverallCat := cat;
+            qtyInOverall := ttlCatQty;
+        END IF;
+
+        IF (qtyOfCat != 0 AND priceInOverall < ttlCatPrice) THEN
+            priceInOverallCat := cat;
+            priceInOverall := ttlCatPrice;
+        END IF;
+
+        IF (qtyOfCat != 0 AND qtyInOverall < ttlCatQty) THEN
+            qtyInOverallCat := cat;
+            qtyInOverall := ttlCatQty;
+        END IF;
+
+        qtyOfCat := qtyOfCat + 1;
+        CLOSE bestSaleCursor;
+    END LOOP;
+    
+    IF (ttlCatQty != 0) THEN
+        DBMS_OUTPUT.PUT_LINE(CHR(10));
+        DBMS_OUTPUT.PUT_LINE('CATEGORY THAT EARN THE HIGHEST PRICE IN THIS MONTH IS : CATEGORY - ' || priceInOverallCat || ' [' || getPriceFormat(priceInOverall) || '] ');
+        DBMS_OUTPUT.PUT_LINE('CATEGORY THAT HAVE MOST PEOPLE BUY IN THIS MONTH IS   : CATEGORY - ' || qtyInOverallCat || ' [' || TO_CHAR(qtyInOverall, '99999') || '] ');
+    END IF;
+
+    CLOSE categoryCursor;
+
+END;
+/
+
+-- EXEC --
+EXEC bestSaleCategory('27/10/2024');

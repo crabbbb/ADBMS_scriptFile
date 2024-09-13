@@ -1,0 +1,113 @@
+ALTER SESSION SET NLS_DATE_FORMAT = 'DD/MM/YYYY';
+ALTER SESSION SET NLS_TIMESTAMP_FORMAT = 'DD/MM/YYYY HH24:MI:SS';
+
+DROP trigger trg_newPurchase;
+
+CREATE OR REPLACE TRIGGER trg_newPurchase
+BEFORE INSERT OR UPDATE OR DELETE ON Purchase
+FOR EACH ROW 
+
+DECLARE
+price Item.SellingPrice%TYPE;
+oldItemQtyInStock Item.QuantityInStock%TYPE;
+newItemQtyInStock Item.QuantityInStock%TYPE;
+
+BEGIN 
+
+CASE 
+    WHEN INSERTING THEN 
+        -- SELECT item 
+        SELECT SellingPrice, QuantityInStock INTO price, newItemQtyInStock
+        FROM Item 
+        WHERE ItemID = :NEW.ItemID; 
+
+        IF (:NEW.Quantity <= newItemQtyInStock) THEN
+            -- still have stock
+            -- get price  
+            -- calculate total`
+            :NEW.ItemBuyPrice := price;
+            :NEW.TotalPrice := price * :NEW.Quantity;
+            newItemQtyInStock := newItemQtyInStock - :NEW.Quantity;
+
+            -- update new QuantityInStock
+            UPDATE Item 
+            SET QuantityInStock = newItemQtyInStock
+            WHERE Item.ItemID = :NEW.ItemID;
+        ELSE 
+            RAISE_APPLICATION_ERROR(-20000, 'The amount of Item request is more than quantity in stock. Item ' || :NEW.ItemID ||  ' Current quantity in stock is : ' || newItemQtyInStock || '. The amount you request is : ' || :NEW.Quantity);
+        END IF;
+    WHEN UPDATING THEN 
+        -- check is same item or not 
+        IF (:NEW.ItemID = :OLD.ItemID) THEN 
+            -- GET ITEM QuantityInStock
+            SELECT QuantityInStock INTO oldItemQtyInStock
+            FROM Item 
+            WHERE ItemID = :OLD.ItemID; 
+
+            -- return back the old quantity 
+            oldItemQtyInStock := oldItemQtyInStock + :OLD.Quantity;
+
+            -- check qty allow ?
+            IF (:NEW.Quantity <= oldItemQtyInStock) THEN
+                -- if allow
+                -- recalculate price 
+                :NEW.TotalPrice := :OLD.ItemBuyPrice * :NEW.Quantity;
+
+                -- update QuantityInStock ( Item )
+                oldItemQtyInStock := oldItemQtyInStock - :NEW.Quantity;
+
+                UPDATE Item 
+                SET QuantityInStock = oldItemQtyInStock
+                WHERE Item.ItemID = :NEW.ItemID;
+            ELSE
+                -- OVER LIMIT
+                RAISE_APPLICATION_ERROR(-20000, 'The amount request to update is exceed the amount that exist in stock. Amount request to adding : ' || :NEW.Quantity - :OLD.Quantity || ' The amount currently exist is : ' || oldItemQtyInStock - :OLD.Quantity);
+            END IF;
+        ELSE 
+            -- NOT SAME 
+            -- GET NEW ITEM 
+            SELECT SellingPrice, QuantityInStock INTO price, newItemQtyInStock
+            FROM Item
+            WHERE ItemID = :NEW.ItemID;
+
+            IF (:NEW.Quantity <= newItemQtyInStock) THEN
+                -- available 
+                :NEW.ItemBuyPrice := price;
+                :NEW.TotalPrice := price * :NEW.Quantity;
+                
+                -- return value to old 
+                SELECT QuantityInStock INTO oldItemQtyInStock
+                FROM Item 
+                WHERE ItemID = :OLD.ItemID;
+
+                oldItemQtyInStock := oldItemQtyInStock + :OLD.Quantity;
+
+                UPDATE Item
+                SET QuantityInStock = oldItemQtyInStock
+                WHERE ItemID = :OLD.ItemID;
+
+                -- update new item 
+                newItemQtyInStock := newItemQtyInStock - :NEW.Quantity;
+
+                UPDATE Item
+                SET QuantityInStock = newItemQtyInStock
+                WHERE ItemID = :NEW.ItemID;
+            ELSE 
+                -- NEW OVERLIMIT 
+                RAISE_APPLICATION_ERROR(-20000, 'The amount of Item request is more than quantity in stock. Item ' || :NEW.ItemID ||  ' Current quantity in stock is : ' || newItemQtyInStock || '. The amount you request is : ' || :NEW.Quantity);
+            END IF;
+        END IF;
+    WHEN DELETING THEN
+        SELECT QuantityInStock INTO oldItemQtyInStock
+        FROM Item 
+        WHERE ItemID = :OLD.ItemID;
+
+        oldItemQtyInStock := oldItemQtyInStock + :OLD.Quantity;
+
+        UPDATE Item
+        SET QuantityInStock = oldItemQtyInStock
+        WHERE ItemID = :OLD.ItemID;
+END CASE;
+END;
+/
+

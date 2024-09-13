@@ -1,0 +1,35 @@
+ALTER SESSION SET NLS_DATE_FORMAT = 'DD/MM/YYYY';
+ALTER SESSION SET NLS_TIMESTAMP_FORMAT = 'DD/MM/YYYY HH24:MI:SS';
+
+DROP trigger trg_staffSchedule;
+
+CREATE OR REPLACE TRIGGER trg_staffSchedule 
+BEFORE INSERT OR UPDATE ON STAFFSCHEDULE
+FOR EACH ROW
+
+DECLARE
+
+startDate FlightSchedule.DepartDateTime%TYPE;
+endDate FlightSchedule.ArriveDateTime%TYPE;
+leaveNo NUMBER(2);
+
+BEGIN
+
+-- get the date duration 
+SELECT TRUNC(DepartDateTime), TRUNC(ArriveDateTime) INTO startDate, endDate
+FROM FlightSchedule
+WHERE FlightScheduleID = :NEW.FlightScheduleID;
+
+SELECT COUNT(*) INTO leaveNo
+FROM Leave
+WHERE StaffID = :NEW.StaffID AND
+        (LeaveDate BETWEEN startDate AND endDate) AND
+        (UPPER(LeaveStatus) = 'PENDING' OR UPPER(LeaveStatus) = 'APPROVE');
+
+IF (leaveNo > 0) THEN 
+        -- have take leave cannot on duty 
+        RAISE_APPLICATION_ERROR(-20000, 'Staff ' || :NEW.StaffID || ' have leave is on pending or already been approved. You are not able to adding he/she into this schedule');
+END IF;
+
+END;
+/

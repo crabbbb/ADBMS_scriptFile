@@ -1,0 +1,10 @@
+-- FS0244
+INSERT INTO Leave (LeaveID, LeaveDate, LeaveReason, LeaveStatus, StaffID) VALUES ('L' || TO_CHAR(leave_seq.nextval, 'FM0000'), '26/08/2025', 'Family Emergency', 'Approve', 'S0007');
+INSERT INTO Leave (LeaveID, LeaveDate, LeaveReason, LeaveStatus, StaffID) VALUES ('L' || TO_CHAR(leave_seq.nextval, 'FM0000'), '26/08/2025', 'Family Emergency', 'Approve', 'S0001');
+
+-- FS0243
+INSERT INTO Leave (LeaveID, LeaveDate, LeaveReason, LeaveStatus, StaffID) VALUES ('L' || TO_CHAR(leave_seq.nextval, 'FM0000'), '24/05/2025', 'Family Emergency', 'Approve', 'S0002');
+
+-- FS0241
+INSERT INTO Leave (LeaveID, LeaveDate, LeaveReason, LeaveStatus, StaffID) VALUES ('L' || TO_CHAR(leave_seq.nextval, 'FM0000'), '23/05/2025', 'Family Emergency', 'Approve', 'S0012');
+INSERT INTO Leave (LeaveID, LeaveDate, LeaveReason, LeaveStatus, StaffID) VALUES ('L' || TO_CHAR(leave_seq.nextval, 'FM0000'), '23/05/2025', 'Family Emergency', 'Approve', 'S0013');

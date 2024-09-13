@@ -1,0 +1,32 @@
+DROP SEQUENCE item_seq;
+DELETE FROM Item;
+
+CREATE SEQUENCE item_seq
+  MINVALUE 1
+  MAXVALUE 9999
+  START WITH 1
+  INCREMENT BY 1
+  NOCACHE;
+
+-- I1000 -- 'I' || TO_CHAR(item_seq.nextval, 'FM0000')
+
+INSERT INTO Item (ItemID, ItemPrice, ItemName, Category, QuantityInStock, SellingPrice) VALUES ('I' || TO_CHAR(item_seq.nextval, 'FM0000'), '96.31', 'Apple Juice', 'Beverages', '512', '96.31');
+INSERT INTO Item (ItemID, ItemPrice, ItemName, Category, QuantityInStock, SellingPrice) VALUES ('I' || TO_CHAR(item_seq.nextval, 'FM0000'), '72.61', 'Mamee Monster', 'Snack', '535', '60.61');
+INSERT INTO Item (ItemID, ItemPrice, ItemName, Category, QuantityInStock, SellingPrice) VALUES ('I' || TO_CHAR(item_seq.nextval, 'FM0000'), '54.78', 'Haw flakes', 'Snack', '868', '54.78');
+INSERT INTO Item (ItemID, ItemPrice, ItemName, Category, QuantityInStock, SellingPrice) VALUES ('I' || TO_CHAR(item_seq.nextval, 'FM0000'), '77.12', 'Dahfa fish snack', 'Snack', '458', '77.12');
+INSERT INTO Item (ItemID, ItemPrice, ItemName, Category, QuantityInStock, SellingPrice) VALUES ('I' || TO_CHAR(item_seq.nextval, 'FM0000'), '78.67', 'Milo', 'Beverages', '703', '78.67');
+INSERT INTO Item (ItemID, ItemPrice, ItemName, Category, QuantityInStock, SellingPrice) VALUES ('I' || TO_CHAR(item_seq.nextval, 'FM0000'), '7.43', 'Orange', 'Fruit', '412', '7.43');
+INSERT INTO Item (ItemID, ItemPrice, ItemName, Category, QuantityInStock, SellingPrice) VALUES ('I' || TO_CHAR(item_seq.nextval, 'FM0000'), '77.31', '100 Plus', 'Beverages', '456', '77.31');
+INSERT INTO Item (ItemID, ItemPrice, ItemName, Category, QuantityInStock, SellingPrice) VALUES ('I' || TO_CHAR(item_seq.nextval, 'FM0000'), '37.33', 'Chocolate Milk', 'Dairy', '853', '37.33');
+INSERT INTO Item (ItemID, ItemPrice, ItemName, Category, QuantityInStock, SellingPrice) VALUES ('I' || TO_CHAR(item_seq.nextval, 'FM0000'), '61.33', 'Fish Cracker', 'Snack', '728', '61.33');
+INSERT INTO Item (ItemID, ItemPrice, ItemName, Category, QuantityInStock, SellingPrice) VALUES ('I' || TO_CHAR(item_seq.nextval, 'FM0000'), '15.49', 'Apple', 'Fruit', '223', '15.49');
+INSERT INTO Item (ItemID, ItemPrice, ItemName, Category, QuantityInStock, SellingPrice) VALUES ('I' || TO_CHAR(item_seq.nextval, 'FM0000'), '32.69', 'Pasta', 'Grain', '392', '32.69');
+INSERT INTO Item (ItemID, ItemPrice, ItemName, Category, QuantityInStock, SellingPrice) VALUES ('I' || TO_CHAR(item_seq.nextval, 'FM0000'), '29.41', 'Stawberry Milk', 'Dairy', '227', '29.41');
+INSERT INTO Item (ItemID, ItemPrice, ItemName, Category, QuantityInStock, SellingPrice) VALUES ('I' || TO_CHAR(item_seq.nextval, 'FM0000'), '25.99', 'Banana', 'Fruit', '567', '25.99');
+INSERT INTO Item (ItemID, ItemPrice, ItemName, Category, QuantityInStock, SellingPrice) VALUES ('I' || TO_CHAR(item_seq.nextval, 'FM0000'), '2.53', 'Julie Biscuits', 'Snack', '163', '2.53');
+INSERT INTO Item (ItemID, ItemPrice, ItemName, Category, QuantityInStock, SellingPrice) VALUES ('I' || TO_CHAR(item_seq.nextval, 'FM0000'), '52.35', 'Murukku', 'Snack', '516', '52.35');
+INSERT INTO Item (ItemID, ItemPrice, ItemName, Category, QuantityInStock, SellingPrice) VALUES ('I' || TO_CHAR(item_seq.nextval, 'FM0000'), '25.84', 'Vitagen', 'Dairy', '470', '25.84');
+INSERT INTO Item (ItemID, ItemPrice, ItemName, Category, QuantityInStock, SellingPrice) VALUES ('I' || TO_CHAR(item_seq.nextval, 'FM0000'), '35.56', 'Cereals', 'Grain', '52', '35.56');
+INSERT INTO Item (ItemID, ItemPrice, ItemName, Category, QuantityInStock, SellingPrice) VALUES ('I' || TO_CHAR(item_seq.nextval, 'FM0000'), '10', 'Mineral Water', 'Beverages', '68', '5');
+INSERT INTO Item (ItemID, ItemPrice, ItemName, Category, QuantityInStock, SellingPrice) VALUES ('I' || TO_CHAR(item_seq.nextval, 'FM0000'), '32.76', 'Yogurt', 'Dairy', '585', '32.76');
+INSERT INTO Item (ItemID, ItemPrice, ItemName, Category, QuantityInStock, SellingPrice) VALUES ('I' || TO_CHAR(item_seq.nextval, 'FM0000'), '78.8', 'Orange Juice', 'Beverages', '452', '78.8')
