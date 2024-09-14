@@ -9,7 +9,6 @@ set pagesize 100
 
 -- SEQUENCE ====================================================================================================
 
-DROP SEQUENCE leave_seq;
 CREATE SEQUENCE leave_seq
   MINVALUE 1
   MAXVALUE 9999
@@ -17,7 +16,6 @@ CREATE SEQUENCE leave_seq
   INCREMENT BY 1
   NOCACHE;
 
-DROP SEQUENCE staff_seq;
 CREATE SEQUENCE staff_seq
   MINVALUE 1
   MAXVALUE 9999
@@ -25,7 +23,6 @@ CREATE SEQUENCE staff_seq
   INCREMENT BY 1
   NOCACHE;
 
-DROP SEQUENCE item_seq;
 CREATE SEQUENCE item_seq
   MINVALUE 1
   MAXVALUE 9999
@@ -41,6 +38,20 @@ DROP INDEX uCategory;
 CREATE INDEX uLeaveStatus ON Leave (UPPER(LeaveStatus));
 
 CREATE INDEX uCategory ON Item (UPPER(Category));
+
+-- FUNCTION =======================================================================================================
+
+CREATE OR REPLACE FUNCTION getGender(gender IN VARCHAR2) RETURN VARCHAR2 IS 
+BEGIN 
+	RETURN CASE WHEN UPPER(gender) = 'M' THEN 'MALE' ELSE 'FEMALE' END;
+END;
+/
+
+CREATE OR REPLACE FUNCTION getPriceFormat(price IN NUMBER) RETURN VARCHAR2 IS 
+BEGIN 
+	RETURN TO_CHAR(price, '$99,999,999.99');
+END;
+/
 
 -- QUERY 1 - staffMonthlyWorkingSchedule ========================================================================
 
@@ -376,6 +387,8 @@ END;
 /
 
 -- EXEC --
+
+EXEC staffServe('P0007', 'B0105', 2);
 
 -- make S0002 all Leave become approve  
 UPDATE Leave
